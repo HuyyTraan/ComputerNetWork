@@ -135,6 +135,7 @@ Truy cập ứng dụng:Mở trình duyệt của bạn và truy cập:http://12
      ├── 💬 Chat APIs (Task 2.2)
      ├── 🧭 Tracker + Quản lý Kênh
      └── 🔌 Socket Layer (Multi-threaded)
+
 Cấu trúc thư mụcCO3094-weaprous/
 │
 ├── daemon/               # Lõi của server
@@ -156,15 +157,25 @@ Cấu trúc thư mụcCO3094-weaprous/
 │
 ├── start_app.py          # Điểm khởi chạy chính
 └── README.md
-📚 Tài liệu API (Chi tiết)Nhấp để mở rộng các tài liệu API.<details><summary><b>🔐 API Xác thực (Task 1A)</b></summary>POST /loginXác thực người dùng và cấp cookie.Request Body:JSON{
+
+📚 Tài liệu API (Chi tiết)Nhấp để mở rộng các tài liệu API.<details><summary><b>
+🔐 API Xác thực (Task 1A)</b></summary>POST /loginXác thực người dùng và cấp cookie.Request Body:
+
+JSON{
   "username": "admin",
   "password": "password"
 }
-Response (Success 200):Thiết lập Set-Cookie: auth=true; sessionid=...JSON{
+
+Response (Success 200):Thiết lập Set-Cookie: auth=true;
+
+sessionid=...JSON{
   "status": "authorized",
   "message": "Login successful"
 }
-Response (Failure 401):JSON{
+
+Response (Failure 401):
+
+JSON{
   "status": "unauthorized",
   "message": "Invalid credentials"
 }
