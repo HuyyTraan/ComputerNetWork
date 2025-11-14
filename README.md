@@ -36,12 +36,15 @@
 **WeApRous** không chỉ là một dự án bình thường. 
 Đây là một hành trình đi sâu vào "bên dưới" của web, nơi chúng tôi tự tay xây dựng mọi thứ từ tầng socket TCP, phân tích các gói tin HTTP, cho đến việc tạo ra một ứng dụng chat P2P thời gian thực.
 
-## ✨ Giao diện ứng dụng
+## ✨ Giao diện login
 
 <img width="2560" height="1600" alt="image" src="https://github.com/user-attachments/assets/108d09fe-a471-4eec-a941-48c3cb5eaea9" />
 
+## ✨ Giao diện chat
+
+<img width="2560" height="1600" alt="image" src="https://github.com/user-attachments/assets/5d4f0b3b-e161-4b2f-b441-7043f903f115" />
+
 ```markdown
-![WeApRous Chat UI](link_den_anh_cua_ban.png)
 
 🚀 Tính năng nổi bật
 Dự án được chia làm hai phần chính với các tính năng chuyên biệt:
@@ -71,11 +74,6 @@ Hai chế độ Chat:
 🔒 Direct Mode: Nhắn tin riêng tư, trực tiếp (P2P) giữa hai peer.
 
 
-
-  
-## ✨ Giao diện ứng dụng
-
-<img width="2560" height="1600" alt="image" src="https://github.com/user-attachments/assets/5d4f0b3b-e161-4b2f-b441-7043f903f115" />
 
 ```markdown
 
