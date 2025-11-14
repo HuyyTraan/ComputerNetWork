@@ -33,11 +33,13 @@
 
 ---
 
-**WeApRous** không chỉ là một dự án bình thường. Đây là một hành trình đi sâu vào "bên dưới" của web, nơi chúng tôi tự tay xây dựng mọi thứ từ tầng socket TCP, phân tích các gói tin HTTP, cho đến việc tạo ra một ứng dụng chat P2P thời gian thực.
+**WeApRous** không chỉ là một dự án bình thường. 
+Đây là một hành trình đi sâu vào "bên dưới" của web, nơi chúng tôi tự tay xây dựng mọi thứ từ tầng socket TCP, phân tích các gói tin HTTP, cho đến việc tạo ra một ứng dụng chat P2P thời gian thực.
 
 ## ✨ Giao diện ứng dụng
 
-Hãy thêm một ảnh chụp màn hình tuyệt đẹp của ứng dụng chat của bạn vào đây!
+<img width="2560" height="1600" alt="image" src="https://github.com/user-attachments/assets/108d09fe-a471-4eec-a941-48c3cb5eaea9" />
+
 ```markdown
 ![WeApRous Chat UI](link_den_anh_cua_ban.png)
 
@@ -77,7 +79,6 @@ Frontend,"HTML5, CSS3, JavaScript (Vanilla)"
 Giao tiếp Dữ liệu,JSON qua HTTP
 Kiến trúc,Client–Server + Hybrid Peer Logic
 
-Tất nhiên rồi!Dưới đây là toàn bộ nội dung của file README.md (phiên bản "đẹp" có huy hiệu và biểu tượng) đã được định dạng chuẩn.Bạn chỉ cần nhấn nút Sao chép (biểu tượng 2 tờ giấy ở góc) ở khung dưới đây, sau đó mở file README.md trên máy của bạn (hoặc trên GitHub), xóa hết nội dung cũ và Dán (Paste) nội dung mới này vào.Nó sẽ hoạt động ngay lập tức.Markdown<h1 align="center">
   🌐 WeApRous 🌐
 </h1>
 
@@ -116,12 +117,38 @@ Tất nhiên rồi!Dưới đây là toàn bộ nội dung của file README.md 
 
 ## ✨ Giao diện ứng dụng
 
-Hãy thêm một ảnh chụp màn hình tuyệt đẹp của ứng dụng chat của bạn vào đây!
+<img width="2560" height="1600" alt="image" src="https://github.com/user-attachments/assets/5d4f0b3b-e161-4b2f-b441-7043f903f115" />
+
 ```markdown
 ![WeApRous Chat UI](link_den_anh_cua_ban.png)
-🚀 Tính năng nổi bậtDự án được chia làm hai phần chính với các tính năng chuyên biệt:🔐 Task 1A: HTTP Server & AuthenticationWeb Server đa luồng xây dựng thuần túy bằng socket và threading của Python.Bộ phân tích HTTP (Parser): Tự phân tích Request (method, path, headers, cookies, body) và xây dựng Response.Hệ thống Routing: Một hệ thống decorator gọn nhẹ để ánh xạ URL đến các hàm xử lý.Xác thực Session/Cookie: Triển khai cơ chế đăng nhập, bảo vệ route, và quản lý session (auth=true, sessionid).Phục vụ tệp tĩnh: Có khả năng phục vụ các tệp HTML, CSS, JS.💬 Task 2.2: Hybrid P2P ChatTracker & Peer Discovery: Server trung tâm (Tracker) quản lý danh sách các peer và kênh chat.Giao diện Hiện đại: UI chat responsive, thân thiện, giống các ứng dụng nhắn tin hiện đại.Cập nhật Polling: Tự động làm mới tin nhắn mỗi 2 giây.Hai chế độ Chat:🌍 Broadcast Mode: Gửi tin nhắn cho tất cả mọi người trong kênh.🔒 Direct Mode: Nhắn tin riêng tư, trực tiếp (P2P) giữa hai peer.🛠️ Công nghệ sử dụngComponentTechnology / LibraryBackendPython (Sockets, Threading)Giao thứcHTTP 1.1 (Cài đặt tùy chỉnh)Xác thựcCookie + Session (Tự quản lý)FrontendHTML5, CSS3, JavaScript (Vanilla)Giao tiếp Dữ liệuJSON qua HTTPKiến trúcClient–Server + Hybrid Peer Logic⚙️ Cài đặt & Khởi chạyChỉ cần 2 bước đơn giản để khởi chạy server:Mở Terminal và cd vào thư mục dự án:Bashcd CO3094-weaprous/CO3094-weaprous
+🚀 Tính năng nổi bậtDự án được chia làm hai phần chính với các tính năng chuyên biệt:
+🔐 Task 1A: HTTP Server & AuthenticationWeb Server đa luồng xây dựng thuần túy bằng socket và threading của Python.
+Bộ phân tích HTTP (Parser): Tự phân tích Request (method, path, headers, cookies, body) và xây dựng Response.
+Hệ thống Routing: Một hệ thống decorator gọn nhẹ để ánh xạ URL đến các hàm xử lý.
+Xác thực Session/Cookie: Triển khai cơ chế đăng nhập, bảo vệ route, và quản lý session (auth=true, sessionid).
+Phục vụ tệp tĩnh: Có khả năng phục vụ các tệp HTML, CSS, JS.
+💬 Task 2.2: Hybrid P2P ChatTracker & Peer Discovery: Server trung tâm (Tracker) quản lý danh sách các peer và kênh chat.
+Giao diện Hiện đại: UI chat responsive, thân thiện, giống các ứng dụng nhắn tin hiện đại.
+Cập nhật Polling: Tự động làm mới tin nhắn mỗi 2 giây.
+Hai chế độ Chat:🌍 Broadcast Mode: Gửi tin nhắn cho tất cả mọi người trong kênh.
+                🔒 Direct Mode: Nhắn tin riêng tư, trực tiếp (P2P) giữa hai peer.
+🛠️ Công nghệ sử dụngComponentTechnology / LibraryBackendPython (Sockets, Threading)
+Giao thứcHTTP 1.1 (Cài đặt tùy chỉnh)Xác thựcCookie + Session (Tự quản lý)FrontendHTML5, CSS3, JavaScript (Vanilla)
+Giao tiếp Dữ liệuJSON qua HTTPKiến trúcClient–Server + Hybrid Peer Logic
+⚙️ Cài đặt & Khởi chạyChỉ cần 2 bước đơn giản để khởi chạy server:
+Mở Terminal và cd vào thư mục dự án:Bashcd CO3094-weaprous/CO3094-weaprous
 Khởi chạy Server bằng Python:Bashpython start_app.py --server-ip 0.0.0.0 --server-port 9000
-Truy cập ứng dụng:Mở trình duyệt của bạn và truy cập:http://127.0.0.1:9000/chat.htmlMẹo: Mở nhiều tab/cửa sổ trình duyệt để giả lập nhiều peer tham gia chat!🔄 Luồng hoạt độngLuồng đi của một peer khi tham gia hệ thống:[1] 🚀 Khởi tạoPeer đăng nhập (/login) để lấy cookie.Peer đăng ký thông tin (/submit-info) với Tracker.Peer tham gia kênh (/add-list).[2] 🤝 Kết nốiPeer lấy danh sách tất cả peer khác (/get-list).Khi muốn chat riêng, Peer A yêu cầu thông tin Peer B (/connect-peer).[3] ⌨️ ChatBroadcast: Gửi tin nhắn lên server (/broadcast-peer).Direct: Gửi tin nhắn thẳng đến IP/Port của peer kia (/send-peer).Polling: Tự động gọi /channel/messages mỗi 2s để lấy tin nhắn mới.🧩 Kiến trúcSơ đồ hệ thốngPlaintext📡 Client (Web Browser)
+Truy cập ứng dụng:Mở trình duyệt của bạn và truy cập:http://127.0.0.1:9000/chat.html
+Mẹo: Mở nhiều tab/cửa sổ trình duyệt để giả lập nhiều peer tham gia chat!
+🔄 Luồng hoạt độngLuồng đi của một peer khi tham gia hệ thống:[1]
+🚀 Khởi tạoPeer đăng nhập (/login) để lấy cookie.Peer đăng ký thông tin (/submit-info) với Tracker.
+Peer tham gia kênh (/add-list).
+[2] 🤝 Kết nốiPeer lấy danh sách tất cả peer khác (/get-list).
+Khi muốn chat riêng, Peer A yêu cầu thông tin Peer B (/connect-peer).
+[3] ⌨️ ChatBroadcast: Gửi tin nhắn lên server (/broadcast-peer).
+Direct: Gửi tin nhắn thẳng đến IP/Port của peer kia (/send-peer).
+Polling: Tự động gọi /channel/messages mỗi 2s để lấy tin nhắn mới.
+🧩 Kiến trúcSơ đồ hệ thốngPlaintext📡 Client (Web Browser)
 │
 ├── 🎨 Chat UI (HTML + CSS + JS)
 │    ├── Đăng nhập
