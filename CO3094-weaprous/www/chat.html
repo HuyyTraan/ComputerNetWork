@@ -1,0 +1,686 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>WeApRous Chat</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+        :root {
+            --bg: #0f172a;
+            --card: #020617;
+            --accent: #38bdf8;
+            --accent-soft: rgba(56, 189, 248, 0.15);
+            --text: #e5e7eb;
+            --muted: #9ca3af;
+            --border: #1f2937;
+            --danger: #f97373;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: radial-gradient(circle at top, #1e293b 0, #020617 55%, #000 100%);
+            color: var(--text);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: stretch;
+        }
+        .app {
+            width: 100%;
+            max-width: 1100px;
+            height: 90vh;
+            margin: 20px;
+            background: linear-gradient(135deg, rgba(15,23,42,0.95), rgba(15,23,42,0.98));
+            border-radius: 24px;
+            border: 1px solid rgba(148,163,184,0.25);
+            box-shadow:
+                0 0 0 1px rgba(15,23,42,0.9),
+                0 18px 45px rgba(0,0,0,0.7);
+            display: flex;
+            overflow: hidden;
+        }
+        .sidebar {
+            width: 260px;
+            border-right: 1px solid var(--border);
+            padding: 18px 16px;
+            display: flex;
+            flex-direction: column;
+            background: radial-gradient(circle at top left, #1e293b 0, #020617 55%);
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 18px;
+        }
+        .logo-circle {
+            width: 32px;
+            height: 32px;
+            border-radius: 999px;
+            background: radial-gradient(circle at 30% 0, #38bdf8, #0ea5e9 40%, #0369a1 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: 700;
+            color: white;
+            box-shadow: 0 0 20px rgba(56,189,248,0.5);
+        }
+        .logo-text-main {
+            font-weight: 600;
+            letter-spacing: 0.03em;
+        }
+        .logo-text-sub {
+            font-size: 11px;
+            text-transform: uppercase;
+            color: var(--muted);
+            letter-spacing: 0.1em;
+        }
+        .section-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            color: var(--muted);
+            letter-spacing: 0.16em;
+            margin: 16px 0 8px;
+        }
+        .pill {
+            border-radius: 999px;
+            padding: 6px 10px;
+            border: 1px solid var(--border);
+            font-size: 11px;
+            color: var(--muted);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: radial-gradient(circle at top left, rgba(56,189,248,0.16), transparent 55%);
+        }
+        .pill-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 999px;
+            background: #22c55e;
+            box-shadow: 0 0 8px rgba(34,197,94,0.7);
+        }
+
+        .login-card {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            background: radial-gradient(circle at top, rgba(15,23,42,0.95), rgba(15,23,42,0.85));
+        }
+        .field-label {
+            font-size: 12px;
+            color: var(--muted);
+            margin-bottom: 4px;
+        }
+        .input {
+            width: 100%;
+            padding: 8px 10px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: rgba(15,23,42,0.9);
+            color: var(--text);
+            font-size: 13px;
+            outline: none;
+        }
+        .input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 1px rgba(56,189,248,0.4);
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            border-radius: 999px;
+            padding: 7px 12px;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            background: radial-gradient(circle at 20% 0, #38bdf8, #0ea5e9);
+            color: white;
+            box-shadow: 0 0 20px rgba(56,189,248,0.5);
+            margin-top: 6px;
+        }
+        .btn:active {
+            transform: translateY(1px);
+            box-shadow: 0 0 10px rgba(56,189,248,0.5);
+        }
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--muted);
+            box-shadow: none;
+        }
+
+        .channels, .peers {
+            margin-top: 8px;
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            background: rgba(15,23,42,0.8);
+            padding: 8px;
+            flex: 1;
+            overflow: auto;
+        }
+        .channel-item {
+            padding: 6px 8px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 13px;
+            cursor: pointer;
+        }
+        .channel-item.active {
+            background: var(--accent-soft);
+            color: var(--accent);
+        }
+        .channel-name {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .channel-hash {
+            color: var(--muted);
+        }
+        .badge {
+            font-size: 10px;
+            padding: 2px 7px;
+            border-radius: 999px;
+            background: rgba(15,23,42,0.8);
+            color: var(--muted);
+            border: 1px solid rgba(75,85,99,0.8);
+        }
+        .peer-item {
+            padding: 4px 6px;
+            border-radius: 8px;
+            font-size: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--muted);
+        }
+        
+        .peer-item.active-peer {
+            background: var(--accent-soft);
+            color: var(--accent);
+        }
+        .peer-item.active-peer span:last-child {
+            color: var(--accent);
+        }
+        
+        .peer-item span:first-child {
+            color: var(--text);
+        }
+
+        .main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 18px 18px 14px;
+        }
+        .main-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .channel-title {
+            font-size: 16px;
+            font-weight: 600;
+        }
+        .channel-subtitle {
+            font-size: 12px;
+            color: var(--muted);
+        }
+        .tag-me {
+            font-size: 11px;
+            border-radius: 999px;
+            padding: 4px 10px;
+            background: rgba(15,23,42,0.9);
+            border: 1px solid var(--border);
+            color: var(--muted);
+        }
+
+        .messages {
+            flex: 1;
+            border-radius: 18px;
+            border: 1px solid var(--border);
+            margin-top: 6px;
+            padding: 10px 12px;
+            background: radial-gradient(circle at top, rgba(15,23,42,0.9), rgba(15,23,42,0.97));
+            overflow-y: auto;
+            font-size: 13px;
+        }
+        .msg {
+            margin-bottom: 8px;
+            padding: 6px 8px;
+            border-radius: 10px;
+            max-width: 75%;
+        }
+        .msg.me {
+            margin-left: auto;
+            background: var(--accent-soft);
+        }
+        .msg.other {
+            background: rgba(15,23,42,0.9);
+            border: 1px solid rgba(31,41,55,0.9);
+        }
+        .msg-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: var(--muted);
+        }
+        .msg-user {
+            font-weight: 500;
+        }
+        .msg-body {
+            margin-top: 2px;
+        }
+
+        .composer {
+            margin-top: 10px;
+            display: flex;
+            gap: 8px;
+            align-items: stretch;
+        }
+        .composer textarea {
+            flex: 1;
+            resize: none;
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            background: rgba(15,23,42,0.9);
+            color: var(--text);
+            padding: 8px 10px;
+            font-size: 13px;
+            max-height: 80px;
+        }
+        .composer textarea:focus {
+            border-color: var(--accent);
+            outline: none;
+            box-shadow: 0 0 0 1px rgba(56,189,248,0.4);
+        }
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: var(--muted);
+            margin-top: 4px;
+        }
+        .hidden { display: none !important; }
+        .danger { color: var(--danger); }
+        .small-link {
+            font-size: 11px;
+            color: var(--accent);
+            cursor: pointer;
+        }
+        .small-link:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+<div class="app">
+    <aside class="sidebar">
+        <div class="logo">
+            <div class="logo-circle">W</div>
+            <div>
+                <div class="logo-text-main">WeApRous Chat</div>
+                <div class="logo-text-sub">BK HCMUT • CO3094</div>
+            </div>
+        </div>
+
+        <div class="pill">
+            <div class="pill-dot"></div>
+            <span>Hybrid chat • HTTP + TCP</span>
+        </div>
+
+        <div id="login-section" class="login-card">
+            <div class="section-title">Login & Peer Info</div>
+            <label class="field-label">Username</label>
+            <input id="username-input" class="input" placeholder="vd: alice" />
+
+            <label class="field-label" style="margin-top:6px;">IP (demo)</label>
+            <input id="ip-input" class="input" value="127.0.0.1" />
+
+            <label class="field-label" style="margin-top:6px;">Port (demo)</label>
+            <input id="port-input" class="input" value="9100" />
+
+            <button class="btn" onclick="loginAndRegister()">
+                <span>Login & Register Peer</span>
+            </button>
+            <div class="field-label" id="login-status"></div>
+        </div>
+
+        <div id="sidebar-main" class="hidden" style="display:flex;flex-direction:column;flex:1;min-height:0;">
+            <div class="section-title" style="margin-top:10px;">Channels</div>
+            <div class="channels" id="channel-list"></div>
+
+            <div style="margin-top:8px;">
+                <div class="section-title">Peers</div>
+                <div class="peers" id="peer-list"></div>
+            </div>
+        </div>
+    </aside>
+
+    <main class="main">
+        <div class="main-header">
+            <div>
+                <div class="channel-title" id="current-channel">#general</div>
+                <div class="channel-subtitle">Hybrid chat application demo</div>
+            </div>
+            <div class="tag-me">
+                You: <span id="me-name">guest</span>
+            </div>
+        </div>
+
+        <div class="messages" id="messages"></div>
+
+        <div class="composer">
+            <textarea id="message-input" rows="2" placeholder="Type a message and press Send..."></textarea>
+            <div style="display:flex;flex-direction:column;gap:6px;">
+                <button class="btn" onclick="sendBroadcast()">Send</button>
+                <button class="btn btn-outline" onclick="refreshAll()">Refresh</button>
+            </div>
+        </div>
+        <div class="status-bar">
+            <span id="status-text">Not logged in</span>
+            <span class="small-link" onclick="clearMessages()">Clear chat</span>
+        </div>
+    </main>
+</div>
+
+<script>
+    // ======= GLOBAL STATE =======
+    let currentUser = null;        // tên đang login trong UI
+    let currentChannel = "general";
+    let selectedPeer = null;       // nếu != null => direct tới peer đó
+    let pollTimer = null;
+
+    // ======= HELPER CALL API =======
+    async function api(path, method = "GET", data = null) {
+        const opts = { method, headers: {} };
+        if (data !== null) {
+            opts.headers["Content-Type"] = "application/json";
+            opts.body = JSON.stringify(data);
+        }
+        const res = await fetch(path, opts);
+        let json;
+        try {
+            json = await res.json();
+        } catch (e) {
+            json = { error: "Invalid JSON", raw: await res.text() };
+        }
+        console.log("API", method, path, "->", res.status, json);
+        return { status: res.status, data: json };
+    }
+
+    // ======= LOGIN + REGISTER PEER =======
+    async function loginAndRegister() {
+        const usernameEl = document.getElementById("username-input");
+        const ipEl = document.getElementById("ip-input");
+        const portEl = document.getElementById("port-input");
+        const statusEl = document.getElementById("login-status");
+
+        const chatName = usernameEl.value.trim();
+        const ip = ipEl.value.trim();
+        const port = portEl.value.trim();
+
+        if (!chatName) {
+            statusEl.textContent = "Please enter username";
+            statusEl.classList.add("danger");
+            return;
+        }
+
+        statusEl.textContent = "Logging in (Task 1A)...";
+        statusEl.classList.remove("danger");
+
+        // 1. Login HTTP cho Task 1A (cố định admin/password)
+        const loginRes = await api("/login", "POST", {
+            username: "admin",
+            password: "password"
+        });
+
+        if (loginRes.status !== 200) {
+            statusEl.textContent = "Login failed: " + (loginRes.data.message || loginRes.status);
+            statusEl.classList.add("danger");
+            return;
+        }
+
+        // 2. Đăng ký peer với tên chatName
+        const regRes = await api("/submit-info", "POST", {
+            username: chatName,
+            ip: ip || "127.0.0.1",
+            port: port || 9100
+        });
+
+        if (regRes.status !== 200) {
+            statusEl.textContent = "Register peer failed";
+            statusEl.classList.add("danger");
+            return;
+        }
+
+        // 3. Join channel general
+        await api("/add-list", "POST", {
+            username: chatName,
+            channel: "general"
+        });
+
+        currentUser = chatName;
+        currentChannel = "general";
+        selectedPeer = null;
+
+        document.getElementById("me-name").textContent = chatName;
+        document.getElementById("current-channel").textContent = "#general";
+
+        document.getElementById("login-section").classList.add("hidden");
+        document.getElementById("sidebar-main").classList.remove("hidden");
+
+        statusEl.textContent = "Logged in as " + chatName;
+        document.getElementById("status-text").textContent = "Broadcast to #general";
+
+        await refreshAll();
+
+        if (pollTimer) clearInterval(pollTimer);
+        pollTimer = setInterval(refreshMessages, 2000);
+    }
+
+    // ======= REFRESH PEERS + CHANNELS + MESSAGES =======
+    async function refreshAll() {
+        await Promise.all([refreshPeers(), refreshMessages()]);
+    }
+
+    async function refreshPeers() {
+        const res = await api("/get-list", "GET");
+        const peerListEl = document.getElementById("peer-list");
+        const channelListEl = document.getElementById("channel-list");
+
+        peerListEl.innerHTML = "";
+        channelListEl.innerHTML = "";
+
+        if (res.status !== 200) {
+            peerListEl.innerHTML = "<div class='field-label danger'>Cannot load peers</div>";
+            channelListEl.innerHTML = "<div class='field-label danger'>Cannot load channels</div>";
+            return;
+        }
+
+        const peers = res.data.peers || [];
+        const channels = res.data.channels || [];
+
+        // Channels
+        channels.forEach((ch) => {
+            const div = document.createElement("div");
+            div.className = "channel-item" + (ch === currentChannel ? " active" : "");
+            div.onclick = () => joinChannel(ch);
+            div.innerHTML = `
+                <div class="channel-name">
+                    <span class="channel-hash">#</span>
+                    <span>${ch}</span>
+                </div>
+                <div class="badge">channel</div>
+            `;
+            channelListEl.appendChild(div);
+        });
+
+        // Peers
+        peers.forEach((p) => {
+            const div = document.createElement("div");
+            div.className = "peer-item";
+            if (p.username === selectedPeer) {
+                div.classList.add("active-peer");
+            }
+
+            div.innerHTML = `
+                <span>${p.username}</span>
+                <span>${p.ip}:${p.port}</span>
+            `;
+
+            div.onclick = function () {
+                toggleDirectPeer(p.username);
+            };
+
+            peerListEl.appendChild(div);
+        });
+    }
+
+    // Bật / tắt chế độ direct tới 1 peer
+    function toggleDirectPeer(name) {
+        if (!currentUser) return;
+
+        if (selectedPeer === name) {
+            // Đang chọn rồi -> tắt direct mode -> trở về broadcast
+            selectedPeer = null;
+            document.getElementById("status-text").textContent =
+                "Broadcast to #" + currentChannel;
+        } else {
+            selectedPeer = name;
+            document.getElementById("status-text").textContent =
+                "Direct to " + name + " in #" + currentChannel;
+        }
+
+        // vẽ lại list peers + messages
+        refreshPeers();
+        refreshMessages();
+    }
+
+    async function joinChannel(channelName) {
+        if (!currentUser) return;
+
+        await api("/add-list", "POST", {
+            username: currentUser,
+            channel: channelName
+        });
+
+        currentChannel = channelName;
+        document.getElementById("current-channel").textContent = "#" + currentChannel;
+
+        if (selectedPeer) {
+            document.getElementById("status-text").textContent =
+                "Direct to " + selectedPeer + " in #" + currentChannel;
+        } else {
+            document.getElementById("status-text").textContent =
+                "Broadcast to #" + currentChannel;
+        }
+
+        await refreshMessages();
+    }
+
+    async function refreshMessages() {
+        if (!currentChannel) return;
+
+        const res = await api("/channel/messages", "POST", {
+            channel: currentChannel
+        });
+
+        const msgEl = document.getElementById("messages");
+        msgEl.innerHTML = "";
+
+        if (res.status !== 200) {
+            msgEl.innerHTML = "<div class='field-label danger'>Cannot load messages</div>";
+            return;
+        }
+
+        const messages = res.data.messages || [];
+
+        messages.forEach((m) => {
+            // Nếu là direct message mà không liên quan tới currentUser -> bỏ qua
+            if (m.type === "direct") {
+                if (!(m.from === currentUser || m.to === currentUser)) {
+                    return;
+                }
+            }
+
+            const div = document.createElement("div");
+            const isMe = m.from === currentUser;
+            div.className = "msg " + (isMe ? "me" : "other");
+            const toPart = m.type === "direct" && m.to ? ` → ${m.to}` : "";
+            const time = (m.timestamp || "").split("T")[1]?.replace("Z", "") || "";
+            div.innerHTML = `
+                <div class="msg-header">
+                    <span class="msg-user">${m.from || ""}${toPart}</span>
+                    <span>${time}</span>
+                </div>
+                <div class="msg-body">${escapeHtml(m.message || "")}</div>
+            `;
+            msgEl.appendChild(div);
+        });
+
+        msgEl.scrollTop = msgEl.scrollHeight;
+    }
+
+    // ======= SEND MESSAGE (broadcast + direct) =======
+    async function sendBroadcast() {
+        if (!currentUser) {
+            alert("Please login first");
+            return;
+        }
+        const input = document.getElementById("message-input");
+        const text = input.value.trim();
+        if (!text) return;
+
+        let res;
+        if (selectedPeer) {
+            // DIRECT MESSAGE
+            res = await api("/send-peer", "POST", {
+                from: currentUser,
+                to: selectedPeer,
+                channel: currentChannel,
+                message: text
+            });
+        } else {
+            // BROADCAST MESSAGE
+            res = await api("/broadcast-peer", "POST", {
+                from: currentUser,
+                channel: currentChannel,
+                message: text
+            });
+        }
+
+        if (res.status !== 200) {
+            alert("Send failed");
+            return;
+        }
+
+        input.value = "";
+        await refreshMessages();
+    }
+
+    function clearMessages() {
+        document.getElementById("messages").innerHTML = "";
+    }
+
+    function escapeHtml(str) {
+        return str.replace(/[&<>"']/g, (c) => ({
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#39;"
+        }[c] || c));
+    }
+</script>
+</body>
+</html>
