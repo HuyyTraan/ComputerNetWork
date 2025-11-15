@@ -29,16 +29,23 @@ Requirement:
 """
 import socket
 import threading
+import random
 from .response import *
 from .httpadapter import HttpAdapter
 from .dictionary import CaseInsensitiveDict
 
+# Global counter for round-robin load balancing
+_round_robin_counter = {}
+
 #: A dictionary mapping hostnames to backend IP and port tuples.
 #: Used to determine routing targets for incoming requests.
 PROXY_PASS = {
-    "192.168.56.103:8080": ('192.168.56.103', 9000),
-    "app1.local": ('192.168.56.103', 9001),
-    "app2.local": ('192.168.56.103', 9002),
+    "127.0.0.1:8080": ('127.0.0.1', 8000),
+    "localhost:8080": ('127.0.0.1', 8000),
+    "172.16.0.117:8080": ('127.0.0.1', 8000),
+    "backend.local": ('127.0.0.1', 9000),
+    "app1.local": ('127.0.0.1', 9001),
+    "app2.local": ('127.0.0.1', 9002),
 }
 
 
@@ -97,26 +104,55 @@ def resolve_routing_policy(hostname, routes):
     proxy_port = '9000'
     if isinstance(proxy_map, list):
         if len(proxy_map) == 0:
-            print("[Proxy] Emtpy resolved routing of hostname {}".format(hostname))
-            print("Empty proxy_map result")
-            # TODO: implement the error handling for non mapped host
-            #       the policy is design by team, but it can be 
-            #       basic default host in your self-defined system
-            # Use a dummy host to raise an invalid connection
-            proxy_host = '127.0.0.1'
-            proxy_port = '9000'
-        elif len(value) == 1:
-            proxy_host, proxy_port = proxy_map[0].split(":", 2)
-        #elif: # apply the policy handling 
-        #   proxy_map
-        #   policy
+            print("[Proxy] Empty resolved routing of hostname {}".format(hostname))
+            print("[Proxy] Applying fallback strategy for unmapped host")
+            
+            # Fallback strategy: try to route to default backend
+            # This allows for graceful degradation instead of hard failure
+            fallback_backends = ['127.0.0.1:8000', '127.0.0.1:9000']
+            
+            for fallback in fallback_backends:
+                try:
+                    proxy_host, proxy_port = fallback.split(':', 1)
+                    print("[Proxy] Using fallback backend: {}".format(fallback))
+                    break
+                except:
+                    continue
+            else:
+                # Last resort fallback
+                proxy_host = '127.0.0.1'
+                proxy_port = '8000'
+                print("[Proxy] Using last resort fallback: {}:{}".format(proxy_host, proxy_port))
+        elif len(proxy_map) == 1:
+            proxy_host, proxy_port = proxy_map[0].split(":", 1)
         else:
-            # Out-of-handle mapped host
-            proxy_host = '127.0.0.1'
-            proxy_port = '9000'
+            # Apply load balancing policy for multiple backends
+            if policy == 'round-robin':
+                # Round-robin selection
+                if hostname not in _round_robin_counter:
+                    _round_robin_counter[hostname] = 0
+                
+                index = _round_robin_counter[hostname] % len(proxy_map)
+                selected_backend = proxy_map[index]
+                proxy_host, proxy_port = selected_backend.split(":", 1)
+                
+                _round_robin_counter[hostname] += 1
+                print("[Proxy] Round-robin selected backend {}/{}: {}".format(
+                    index + 1, len(proxy_map), selected_backend))
+                    
+            elif policy == 'random':
+                # Random selection
+                selected_backend = random.choice(proxy_map)
+                proxy_host, proxy_port = selected_backend.split(":", 1)
+                print("[Proxy] Random selected backend: {}".format(selected_backend))
+                
+            else:
+                # Default to first backend if policy unknown
+                proxy_host, proxy_port = proxy_map[0].split(":", 1)
+                print("[Proxy] Unknown policy '{}', using first backend".format(policy))
     else:
         print("[Proxy] resolve route of hostname {} is a singulair to".format(hostname))
-        proxy_host, proxy_port = proxy_map.split(":", 2)
+        proxy_host, proxy_port = proxy_map.split(":", 1)
 
     return proxy_host, proxy_port
 
@@ -138,15 +174,32 @@ def handle_client(ip, port, conn, addr, routes):
     :params addr (tuple): client address (IP, port).
     :params routes (dict): dictionary mapping hostnames and location.
     """
+    
+    try:
+        request = conn.recv(1024).decode()
+        
+        if not request.strip():
+            print("[Proxy] {} sent empty request".format(addr))
+            conn.close()
+            return
 
-    request = conn.recv(1024).decode()
-
-    # Extract hostname
-    for line in request.splitlines():
-        if line.lower().startswith('host:'):
-            hostname = line.split(':', 1)[1].strip()
-
-    print("[Proxy] {} at Host: {}".format(addr, hostname))
+        # Extract hostname
+        hostname = None
+        for line in request.splitlines():
+            if line.lower().startswith('host:'):
+                hostname = line.split(':', 1)[1].strip()
+                break
+        
+        if not hostname:
+            print("[Proxy] {} missing Host header, using default".format(addr))
+            hostname = "127.0.0.1:8000"  # Default fallback
+            
+        print("[Proxy] {} at Host: {}".format(addr, hostname))
+        
+    except Exception as e:
+        print("[Proxy] Error processing request from {}: {}".format(addr, e))
+        conn.close()
+        return
 
     # Resolve the matching destination in routes and need conver port
     # to integer value
@@ -156,20 +209,36 @@ def handle_client(ip, port, conn, addr, routes):
     except ValueError:
         print("Not a valid integer")
 
-    if resolved_host:
-        print("[Proxy] Host name {} is forwarded to {}:{}".format(hostname,resolved_host, resolved_port))
-        response = forward_request(resolved_host, resolved_port, request)        
-    else:
-        response = (
-            "HTTP/1.1 404 Not Found\r\n"
-            "Content-Type: text/plain\r\n"
-            "Content-Length: 13\r\n"
-            "Connection: close\r\n"
-            "\r\n"
-            "404 Not Found"
-        ).encode('utf-8')
-    conn.sendall(response)
-    conn.close()
+        if resolved_host:
+            print("[Proxy] Host name {} is forwarded to {}:{}".format(hostname, resolved_host, resolved_port))
+            response = forward_request(resolved_host, resolved_port, request)        
+        else:
+            print("[Proxy] No valid backend found for {}".format(hostname))
+            response = (
+                "HTTP/1.1 404 Not Found\r\n"
+                "Content-Type: text/plain\r\n"
+                "Content-Length: 13\r\n"
+                "Connection: close\r\n"
+                "\r\n"
+                "404 Not Found"
+            ).encode('utf-8')
+        # giải quyết việc client disconnect trước khi nhận response -> không crash proxy
+        try:
+            conn.sendall(response)
+        except Exception as e:
+            print("[Proxy] Error sending response to {}: {}".format(addr, e))
+        finally:
+            try:
+                conn.close()
+            except:
+                pass
+                
+    except Exception as e:
+        print("[Proxy] Unexpected error handling client {}: {}".format(addr, e))
+        try:
+            conn.close()
+        except:
+            pass
 
 def run_proxy(ip, port, routes):
     """
@@ -191,16 +260,37 @@ def run_proxy(ip, port, routes):
     try:
         proxy.bind((ip, port))
         proxy.listen(50)
+        proxy.settimeout(1)  # Set timeout for CTRL+C handling
         print("[Proxy] Listening on IP {} port {}".format(ip,port))
+        
         while True:
-            conn, addr = proxy.accept()
-            #
-            #  TODO: implement the step of the client incomping connection
-            #        using multi-thread programming with the
-            #        provided handle_client routine
-            #
+            try:
+                conn, addr = proxy.accept()
+                
+                # Create thread for each client connection
+                client_thread = threading.Thread(
+                    target=handle_client,
+                    args=(ip, port, conn, addr, routes),
+                    name="proxy-client-{}:{}".format(addr[0], addr[1])
+                )
+                # Set as daemon thread so main program can exit
+                client_thread.daemon = True
+                client_thread.start()
+                
+            except socket.timeout:
+                # Timeout allows CTRL+C to interrupt
+                continue
+            except KeyboardInterrupt:
+                print("\n[Proxy] Shutting down gracefully...")
+                break
+                
     except socket.error as e:
-      print("Socket error: {}".format(e))
+        print("Socket error: {}".format(e))
+    finally:
+        try:
+            proxy.close()
+        except:
+            pass
 
 def create_proxy(ip, port, routes):
     """

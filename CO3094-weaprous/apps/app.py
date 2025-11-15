@@ -37,13 +37,16 @@ import argparse
 import datetime
 from daemon.weaprous import WeApRous
 
-PORT = 9000  # Default port
+PORT = 8000  # Default port
 
 app = WeApRous()
 
 # ============================================================================
 # Task 1A: Authentication Routes
 # ============================================================================
+
+import uuid
+import datetime as dt
 
 # Simulated database (in production: Redis, PostgreSQL, etc.)
 SESSIONS = {
@@ -53,6 +56,23 @@ SESSIONS = {
         "expires_at": "2025-11-12 11:00:00"
     }
 }
+
+def generate_session_id():
+    """Generate a unique session ID"""
+    return str(uuid.uuid4()).replace('-', '')[:16]
+
+def create_session(username):
+    """Create a new session for user"""
+    session_id = generate_session_id()
+    now = dt.datetime.now()
+    expires = now + dt.timedelta(hours=24)  # 24 hour session
+    
+    SESSIONS[session_id] = {
+        "username": username,
+        "created_at": now.strftime("%Y-%m-%d %H:%M:%S"),
+        "expires_at": expires.strftime("%Y-%m-%d %H:%M:%S")
+    }
+    return session_id
 
 @app.route('/', methods=['GET'])
 def index(request=None, body=""):
@@ -150,11 +170,16 @@ def login(request=None, body=""):
         # Valid credentials: username=admin, password=password
         if username == "admin" and password == "password":
             print("[App] Login successful - valid credentials")
+            
+            # Generate new session
+            session_id = create_session(username)
+            print(f"[App] Created new session: {session_id} for user: {username}")
+            
             # Return with Set-Cookie header
             # Format: (status_code, data, cookies_dict)
             cookies = {
                 "auth": "true",
-                "sessionid": "abc123def456",
+                "sessionid": session_id,
                 "username": username
             }
             return (200, {
@@ -236,7 +261,7 @@ def chat_submit_info(request=None, body=""):
         {
             "username": "alice",
             "ip": "127.0.0.1",
-            "port": 9001
+            "port": PORT + 1  # Dynamic port based on main app port
         }
     """
     print("[Chat] /submit-info")

@@ -38,7 +38,8 @@
 ## ✨ Giao diện ứng dụng
 
 Hãy thêm một ảnh chụp màn hình tuyệt đẹp của ứng dụng chat của bạn vào đây!
-```markdown
+
+````markdown
 ![WeApRous Chat UI](link_den_anh_cua_ban.png)
 
 🚀 Tính năng nổi bật
@@ -78,7 +79,8 @@ Giao tiếp Dữ liệu,JSON qua HTTP
 Kiến trúc,Client–Server + Hybrid Peer Logic
 
 Tất nhiên rồi!Dưới đây là toàn bộ nội dung của file README.md (phiên bản "đẹp" có huy hiệu và biểu tượng) đã được định dạng chuẩn.Bạn chỉ cần nhấn nút Sao chép (biểu tượng 2 tờ giấy ở góc) ở khung dưới đây, sau đó mở file README.md trên máy của bạn (hoặc trên GitHub), xóa hết nội dung cũ và Dán (Paste) nội dung mới này vào.Nó sẽ hoạt động ngay lập tức.Markdown<h1 align="center">
-  🌐 WeApRous 🌐
+🌐 WeApRous 🌐
+
 </h1>
 
 <p align="center">
@@ -117,83 +119,146 @@ Tất nhiên rồi!Dưới đây là toàn bộ nội dung của file README.md 
 ## ✨ Giao diện ứng dụng
 
 Hãy thêm một ảnh chụp màn hình tuyệt đẹp của ứng dụng chat của bạn vào đây!
-```markdown
+
+````markdown
 ![WeApRous Chat UI](link_den_anh_cua_ban.png)
 (Bạn nên thay thế dòng trên bằng ảnh chụp màn hình thực tế của dự án)🚀 Tính năng nổi bậtDự án được chia làm hai phần chính với các tính năng chuyên biệt:🔐 Task 1A: HTTP Server & AuthenticationWeb Server đa luồng xây dựng thuần túy bằng socket và threading của Python.Bộ phân tích HTTP (Parser): Tự phân tích Request (method, path, headers, cookies, body) và xây dựng Response.Hệ thống Routing: Một hệ thống decorator gọn nhẹ để ánh xạ URL đến các hàm xử lý.Xác thực Session/Cookie: Triển khai cơ chế đăng nhập, bảo vệ route, và quản lý session (auth=true, sessionid).Phục vụ tệp tĩnh: Có khả năng phục vụ các tệp HTML, CSS, JS.💬 Task 2.2: Hybrid P2P ChatTracker & Peer Discovery: Server trung tâm (Tracker) quản lý danh sách các peer và kênh chat.Giao diện Hiện đại: UI chat responsive, thân thiện, giống các ứng dụng nhắn tin hiện đại.Cập nhật Polling: Tự động làm mới tin nhắn mỗi 2 giây.Hai chế độ Chat:🌍 Broadcast Mode: Gửi tin nhắn cho tất cả mọi người trong kênh.🔒 Direct Mode: Nhắn tin riêng tư, trực tiếp (P2P) giữa hai peer.🛠️ Công nghệ sử dụngComponentTechnology / LibraryBackendPython (Sockets, Threading)Giao thứcHTTP 1.1 (Cài đặt tùy chỉnh)Xác thựcCookie + Session (Tự quản lý)FrontendHTML5, CSS3, JavaScript (Vanilla)Giao tiếp Dữ liệuJSON qua HTTPKiến trúcClient–Server + Hybrid Peer Logic⚙️ Cài đặt & Khởi chạyChỉ cần 2 bước đơn giản để khởi chạy server:Mở Terminal và cd vào thư mục dự án:Bashcd CO3094-weaprous/CO3094-weaprous
 Khởi chạy Server bằng Python:Bashpython start_app.py --server-ip 0.0.0.0 --server-port 9000
 Truy cập ứng dụng:Mở trình duyệt của bạn và truy cập:http://127.0.0.1:9000/chat.htmlMẹo: Mở nhiều tab/cửa sổ trình duyệt để giả lập nhiều peer tham gia chat!🔄 Luồng hoạt độngLuồng đi của một peer khi tham gia hệ thống:[1] 🚀 Khởi tạoPeer đăng nhập (/login) để lấy cookie.Peer đăng ký thông tin (/submit-info) với Tracker.Peer tham gia kênh (/add-list).[2] 🤝 Kết nốiPeer lấy danh sách tất cả peer khác (/get-list).Khi muốn chat riêng, Peer A yêu cầu thông tin Peer B (/connect-peer).[3] ⌨️ ChatBroadcast: Gửi tin nhắn lên server (/broadcast-peer).Direct: Gửi tin nhắn thẳng đến IP/Port của peer kia (/send-peer).Polling: Tự động gọi /channel/messages mỗi 2s để lấy tin nhắn mới.🧩 Kiến trúcSơ đồ hệ thốngPlaintext📡 Client (Web Browser)
 │
 ├── 🎨 Chat UI (HTML + CSS + JS)
-│    ├── Đăng nhập
-│    ├── Chọn kênh
-│    ├── Danh sách Peer
-│    └── Khung chat
+│ ├── Đăng nhập
+│ ├── Chọn kênh
+│ ├── Danh sách Peer
+│ └── Khung chat
 │
 └── 🐍 Server (Python)
-     ├── 📜 HTTP Parser (Request + Response)
-     ├── 🗺️ Routing System (Task 1A)
-     ├── 💬 Chat APIs (Task 2.2)
-     ├── 🧭 Tracker + Quản lý Kênh
-     └── 🔌 Socket Layer (Multi-threaded)
+├── 📜 HTTP Parser (Request + Response)
+├── 🗺️ Routing System (Task 1A)
+├── 💬 Chat APIs (Task 2.2)
+├── 🧭 Tracker + Quản lý Kênh
+└── 🔌 Socket Layer (Multi-threaded)
 
 Cấu trúc thư mụcCO3094-weaprous/
 │
-├── daemon/               # Lõi của server
-│   ├── backend.py        # Logic TCP server
-│   ├── httpadapter.py    # Adapter xử lý HTTP
-│   ├── request.py        # Phân tích Request
-│   ├── response.py       # Xây dựng Response
-│   └── weaprous.py       # Framework routing
+├── daemon/ # Lõi của server
+│ ├── backend.py # Logic TCP server
+│ ├── httpadapter.py # Adapter xử lý HTTP
+│ ├── request.py # Phân tích Request
+│ ├── response.py # Xây dựng Response
+│ └── weaprous.py # Framework routing
 │
 ├── apps/
-│   └── app.py            # Logic của ứng dụng (API)
+│ └── app.py # Logic của ứng dụng (API)
 │
-├── www/                  # Các file HTML cho client
-│   ├── index.html
-│   ├── login.html
-│   └── chat.html
+├── www/ # Các file HTML cho client
+│ ├── index.html
+│ ├── login.html
+│ └── chat.html
 │
-├── static/               # (Tùy chọn) CSS, JS, Images
+├── static/ # (Tùy chọn) CSS, JS, Images
 │
-├── start_app.py          # Điểm khởi chạy chính
+├── start_app.py # Điểm khởi chạy chính
 └── README.md
 
 📚 Tài liệu API (Chi tiết)Nhấp để mở rộng các tài liệu API.<details><summary><b>
 🔐 API Xác thực (Task 1A)</b></summary>POST /loginXác thực người dùng và cấp cookie.Request Body:
 
 JSON{
-  "username": "admin",
-  "password": "password"
+"username": "admin",
+"password": "password"
 }
 
 Response (Success 200):Thiết lập Set-Cookie: auth=true;
 
 sessionid=...JSON{
-  "status": "authorized",
-  "message": "Login successful"
+"status": "authorized",
+"message": "Login successful"
 }
 
 Response (Failure 401):
 
 JSON{
-  "status": "unauthorized",
-  "message": "Invalid credentials"
+"status": "unauthorized",
+"message": "Invalid credentials"
 }
 
 ⚙️ Cài đặt & Khởi chạy
-Chỉ cần 2 bước đơn giản để khởi chạy server:
 
-1. Mở Terminal và cd vào thư mục dự án:
-cd CO3094-weaprous/CO3094-weaprous
+## 🌐 Bước 1: Cấu hình Network cho truy cập từ mạng LAN
 
-2. Khởi chạy Server bằng Python:
-python start_app.py --server-ip 0.0.0.0 --server-port 9000
+### Tìm địa chỉ IP của máy bạn:
 
-3. Truy cập ứng dụng:
-Mở trình duyệt của bạn và truy cập:
+```bash
+# Windows
+ipconfig | findstr "IPv4"
 
-http://127.0.0.1:9000/chat.html
-Mẹo: Mở nhiều tab/cửa sổ trình duyệt để giả lập nhiều peer tham gia chat!
+# Kết quả ví dụ: 172.16.0.117 (Wi-Fi adapter)
+```
+````
+````
+
+### Cấu hình Proxy cho network access:
+
+1. **Mở file `config/proxy.conf`**
+2. **Sửa địa chỉ IP** trong các dòng sau:
+
+```properties
+# Thay YOUR_IP bằng IP thật của máy (ví dụ: 172.16.0.117)
+host "YOUR_IP:8080" {
+    proxy_pass http://127.0.0.1:8000;
+}
+
+host "YOUR_IP:8081" {
+    proxy_pass http://127.0.0.1:8000;
+}
+```
+
+### Mở Windows Firewall (chạy với quyền Administrator):
+
+```bash
+# Mở port cho server
+netsh advfirewall firewall add rule name="WeApRous Server Port 8000" dir=in action=allow protocol=TCP localport=8000
+
+# Mở port cho proxy
+netsh advfirewall firewall add rule name="WeApRous Proxy Port 8080" dir=in action=allow protocol=TCP localport=8080
+```
+
+## 🚀 Bước 2: Khởi chạy Services
+
+### Khởi chạy theo thứ tự:
+
+1. **Khởi động Proxy Server:**
+
+```bash
+cd CO3094-weaprous
+python start_proxy.py --server-ip 0.0.0.0 --server-port 8080
+```
+
+2. **Khởi động Main Application (Terminal mới):**
+
+```bash
+cd CO3094-weaprous
+python start_app.py --server-ip 127.0.0.1 --server-port 8000
+```
+
+## 🌍 Bước 3: Truy cập ứng dụng
+
+### Truy cập từ máy local:
+
+- **Task 1A (Authentication):** `http://localhost:8080/`
+- **Task 2 (Chat):** `http://localhost:8080/chat.html`
+
+### Truy cập từ máy khác trong mạng LAN:
+
+- **Task 1A:** `http://YOUR_IP:8080/` (ví dụ: http://172.16.0.117:8080/)
+- **Task 2:** `http://YOUR_IP:8080/chat.html`
+
+### 💡 Mẹo:
+
+- Mở nhiều tab/máy khác nhau để test chat P2P
+- Sử dụng Thunder Client để test API endpoints
+- Kiểm tra console để debug connection issues
 
 🔄 Luồng hoạt động
 Luồng đi của một peer khi tham gia hệ thống:
@@ -225,40 +290,40 @@ Sơ đồ hệ thống
 📡 Client (Web Browser)
 │
 ├── 🎨 Chat UI (HTML + CSS + JS)
-│    ├── Đăng nhập
-│    ├── Chọn kênh
-│    ├── Danh sách Peer
-│    └── Khung chat
+│ ├── Đăng nhập
+│ ├── Chọn kênh
+│ ├── Danh sách Peer
+│ └── Khung chat
 │
 └── 🐍 Server (Python)
-     ├── 📜 HTTP Parser (Request + Response)
-     ├── 🗺️ Routing System (Task 1A)
-     ├── 💬 Chat APIs (Task 2.2)
-     ├── 🧭 Tracker + Quản lý Kênh
-     └── 🔌 Socket Layer (Multi-threaded)
+├── 📜 HTTP Parser (Request + Response)
+├── 🗺️ Routing System (Task 1A)
+├── 💬 Chat APIs (Task 2.2)
+├── 🧭 Tracker + Quản lý Kênh
+└── 🔌 Socket Layer (Multi-threaded)
 
- Cấu trúc thư mục
+Cấu trúc thư mục
 
- CO3094-weaprous/
+CO3094-weaprous/
 │
-├── daemon/               # Lõi của server
-│   ├── backend.py        # Logic TCP server
-│   ├── httpadapter.py    # Adapter xử lý HTTP
-│   ├── request.py        # Phân tích Request
-│   ├── response.py       # Xây dựng Response
-│   └── weaprous.py       # Framework routing
+├── daemon/ # Lõi của server
+│ ├── backend.py # Logic TCP server
+│ ├── httpadapter.py # Adapter xử lý HTTP
+│ ├── request.py # Phân tích Request
+│ ├── response.py # Xây dựng Response
+│ └── weaprous.py # Framework routing
 │
 ├── apps/
-│   └── app.py            # Logic của ứng dụng (API)
+│ └── app.py # Logic của ứng dụng (API)
 │
-├── www/                  # Các file HTML cho client
-│   ├── index.html
-│   ├── login.html
-│   └── chat.html
+├── www/ # Các file HTML cho client
+│ ├── index.html
+│ ├── login.html
+│ └── chat.html
 │
-├── static/               # (Tùy chọn) CSS, JS, Images
+├── static/ # (Tùy chọn) CSS, JS, Images
 │
-├── start_app.py          # Điểm khởi chạy chính
+├── start_app.py # Điểm khởi chạy chính
 └── README.md
 
 📚 Tài liệu API (Chi tiết)
@@ -271,20 +336,20 @@ Xác thực người dùng và cấp cookie.
 
 Request Body:
 {
-  "username": "admin",
-  "password": "password"
+"username": "admin",
+"password": "password"
 }
 
 Response (Success 200): Thiết lập Set-Cookie: auth=true; sessionid=...
 {
-  "status": "authorized",
-  "message": "Login successful"
+"status": "authorized",
+"message": "Login successful"
 }
 
 Response (Failure 401):
 {
-  "status": "unauthorized",
-  "message": "Invalid credentials"
+"status": "unauthorized",
+"message": "Invalid credentials"
 }
 
 </details>
@@ -301,6 +366,7 @@ Endpoint,Method,Description
 
 💭 Gửi & Nhận tin nhắn
 | Endpoint | Method | Description | | :--- | :--- | :--- | | /broadcast-peer | POST | Gửi tin nhắn broadcast đến tất cả peer trong kênh. | | /send-peer | POST | Gửi tin nhắn riêng tư (direct) đến một peer. | | /channel/messages| POST | Lấy lịch sử tin nhắn của một kênh (dùng cho polling). |
+
 </details>
 
 💡 Tóm tắt
@@ -312,4 +378,3 @@ Trần Vũ Đình Huy
 Khoa Khoa học và Kỹ thuật Máy tính
 
 Trường Đại học Bách khoa (HCMUT)
-
