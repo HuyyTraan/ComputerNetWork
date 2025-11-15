@@ -485,7 +485,7 @@
         await refreshAll();
 
         if (pollTimer) clearInterval(pollTimer);
-        pollTimer = setInterval(refreshMessages, 2000);
+        pollTimer = setInterval(refreshMessages, 5000);  // Changed from 2s to 5s
     }
 
     // ======= REFRESH PEERS + CHANNELS + MESSAGES =======

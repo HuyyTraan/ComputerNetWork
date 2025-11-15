@@ -337,18 +337,89 @@ class Response():
         Builds a full HTTP response based on the request.
 
         - Nếu request có hook (route của WeApRous) → JSON (RESTful)
+        - Nếu hook return None → fallback to static file serving
         - Nếu không có hook → thử serve static HTML
         """
         # Safety: request rỗng
         if request is None:
             return self.build_error_response(500, "Empty request object")
 
-        # Case 1: có route handler → JSON
+        # Case 1: có route handler → call it first
         if getattr(request, "hook", None):
-            return self.build_json_response(request)
+            try:
+                result = request.hook(request=request)
+                
+                # If hook returns None, fallback to static file serving
+                if result is None:
+                    print("[Response] Hook returned None, falling back to static file serving")
+                    return self.build_file_response(request)
+                
+                # Otherwise build JSON response from hook result
+                return self._build_json_from_result(result, request)
+                
+            except Exception as e:
+                print("[Response] Error in hook handler: {}".format(e))
+                return self.build_error_response(500, str(e))
 
         # Case 2: không có route → serve static HTML từ ./www
         return self.build_file_response(request)
+
+    def _build_json_from_result(self, result, request):
+        """
+        Helper method to build JSON response from hook result
+        """
+        status_code = 200
+        data = result
+        response_cookies = None
+
+        if isinstance(result, tuple):
+            if len(result) == 3:
+                status_code, data, response_cookies = result
+                print("[Response] cookies: {}, status code : {}, data: {}".format(
+                    response_cookies, status_code, data))
+            elif len(result) == 2:
+                status_code, data = result
+                print("[Response] status code : {}, data: {}".format(
+                    status_code, data))
+            else:
+                # Tuple nhưng không đúng 2 hoặc 3 phần tử → coi như data
+                data = result
+                print("[Response] data (tuple with len !=2,3): {}".format(data))
+        else:
+            print("[Response] data: {}".format(data))
+
+        # Convert body sang JSON bytes
+        response_body = json.dumps(data).encode("utf-8")
+
+        # Map status→status text
+        status_map = {
+            200: "OK",
+            201: "Created",
+            204: "No Content",
+            400: "Bad Request",
+            401: "Unauthorized",
+            404: "Not Found",
+            500: "Internal Server Error",
+        }
+        status_text = status_map.get(status_code, "OK")
+
+        status_line = "HTTP/1.1 {} {}\r\n".format(status_code, status_text)
+        headers = "Content-Type: application/json\r\n"
+
+        # Thêm Set-Cookie nếu có
+        if response_cookies:
+            if isinstance(response_cookies, dict):
+                for cookie_name, cookie_value in response_cookies.items():
+                    headers += "Set-Cookie: {}={}\r\n".format(cookie_name, cookie_value)
+            elif isinstance(response_cookies, str):
+                headers += "Set-Cookie: {}\r\n".format(response_cookies)
+
+        headers += "Content-Length: {}\r\n\r\n".format(len(response_body))
+
+        print("[Response] JSON response: status-{}, content-length={}".format(
+            status_code, len(response_body)))
+
+        return status_line.encode("utf-8") + headers.encode("utf-8") + response_body
 
 
     # def build_json_response(self, request: Request):
@@ -439,59 +510,9 @@ class Response():
 
             # Gọi route handler, luôn truyền request để handler dùng cookies, body, ...
             result = request.hook(request=request)
-
-            status_code = 200
-            data = result
-            response_cookies = None
-
-            if isinstance(result, tuple):
-                if len(result) == 3:
-                    status_code, data, response_cookies = result
-                    print("[Response] cookies: {}, status code : {}, data: {}".format(
-                        response_cookies, status_code, data))
-                elif len(result) == 2:
-                    status_code, data = result
-                    print("[Response] status code : {}, data: {}".format(
-                        status_code, data))
-                else:
-                    # Tuple nhưng không đúng 2 hoặc 3 phần tử → coi như data
-                    data = result
-                    print("[Response] data (tuple with len !=2,3): {}".format(data))
-            else:
-                print("[Response] data: {}".format(data))
-
-            # Convert body sang JSON bytes
-            response_body = json.dumps(data).encode("utf-8")
-
-            # Map status→status text
-            status_map = {
-                200: "OK",
-                201: "Created",
-                204: "No Content",
-                400: "Bad Request",
-                401: "Unauthorized",
-                404: "Not Found",
-                500: "Internal Server Error",
-            }
-            status_text = status_map.get(status_code, "OK")
-
-            status_line = "HTTP/1.1 {} {}\r\n".format(status_code, status_text)
-            headers = "Content-Type: application/json\r\n"
-
-            # Thêm Set-Cookie nếu có
-            if response_cookies:
-                if isinstance(response_cookies, dict):
-                    for cookie_name, cookie_value in response_cookies.items():
-                        headers += "Set-Cookie: {}={}\r\n".format(cookie_name, cookie_value)
-                elif isinstance(response_cookies, str):
-                    headers += "Set-Cookie: {}\r\n".format(response_cookies)
-
-            headers += "Content-Length: {}\r\n\r\n".format(len(response_body))
-
-            print("[Response] JSON response: status-{}, content-length={}".format(
-                status_code, len(response_body)))
-
-            return status_line.encode("utf-8") + headers.encode("utf-8") + response_body
+            
+            # Use helper method to build response
+            return self._build_json_from_result(result, request)
 
         except Exception as e:
             print("[Response] Error in hook handler: {}".format(e))

@@ -1,21 +1,264 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-    <title>bksysnet@hcmut welcome</title>
-
-    <meta charset="utf-8" />
-    <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="stylesheet" href="css/styles.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WeApRous - Welcome</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            margin: 0; padding: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+        .logo-text {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #667eea;
+        }
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .user-badge {
+            background: #f0f9ff;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            border: 1px solid #0ea5e9;
+            color: #0369a1;
+            font-weight: 500;
+        }
+        .logout-btn {
+            background: #dc2626;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+        .logout-btn:hover {
+            background: #b91c1c;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+        }
+        .welcome-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 3rem 2rem;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .welcome-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin: 0 0 1rem;
+        }
+        .welcome-subtitle {
+            font-size: 1.2rem;
+            color: #6b7280;
+            margin-bottom: 2rem;
+        }
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        .feature-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+        .feature-card:hover {
+            transform: translateY(-2px);
+        }
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        .feature-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+        }
+        .feature-desc {
+            color: #6b7280;
+            line-height: 1.6;
+        }
+        .cta-section {
+            text-align: center;
+            margin-top: 3rem;
+        }
+        .cta-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: transform 0.2s;
+            margin: 0.5rem;
+        }
+        .cta-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+        .footer {
+            text-align: center;
+            padding: 2rem;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.9rem;
+        }
+    </style>
 </head>
-
 <body>
-<div>
-    <h1>bksysnet@hcmut  Domain</h1>
-    <p>This domain is for use in illustrative examples in documents.
-    </p>
-  
-       <img src="../static/images/welcome.jpg" alt="bksysnet at HCMUT" width="500" height="600">  
-</div>
+    <div class="header">
+        <div class="logo">
+            <div class="logo-icon">W</div>
+            <div class="logo-text">WeApRous</div>
+        </div>
+        <div class="user-info">
+            <div class="user-badge" id="userBadge">
+                👤 Loading...
+            </div>
+            <button class="logout-btn" onclick="logout()">
+                🚪 Logout
+            </button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="welcome-card">
+            <h1 class="welcome-title">Welcome to WeApRous</h1>
+            <p class="welcome-subtitle">
+                A powerful RESTful TCP WebApp with authentication and real-time chat capabilities
+            </p>
+            <p style="color: #059669; font-weight: 500;">
+                ✅ You are successfully authenticated and can access all features
+            </p>
+        </div>
+
+        <div class="features">
+            <div class="feature-card">
+                <div class="feature-icon">🔐</div>
+                <div class="feature-title">Secure Authentication</div>
+                <div class="feature-desc">
+                    Session-based authentication with secure cookie management and automatic session validation.
+                </div>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">💬</div>
+                <div class="feature-title">Real-time Chat</div>
+                <div class="feature-desc">
+                    Connect with other users through our real-time chat system with channel support and direct messaging.
+                </div>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">🌐</div>
+                <div class="feature-title">RESTful API</div>
+                <div class="feature-desc">
+                    Full REST API support with JSON responses, perfect for building modern web applications.
+                </div>
+            </div>
+        </div>
+
+        <div class="cta-section">
+            <a href="/chat.html" class="cta-btn">
+                💬 Open Chat Application
+            </a>
+            <a href="/login" class="cta-btn" onclick="logout(); return false;">
+                🔄 Switch Account
+            </a>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>WeApRous Framework - Built for CO3094 Computer Networks Course</p>
+        <p>© 2025 HCMUT - Ho Chi Minh City University of Technology</p>
+    </div>
+
+    <script>
+        // Get user info from cookies
+        function getCookie(name) {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop().split(';').shift();
+            return null;
+        }
+        
+        // Update user badge
+        function updateUserInfo() {
+            const username = getCookie('username');
+            const sessionid = getCookie('sessionid');
+            
+            if (username) {
+                document.getElementById('userBadge').textContent = `👤 ${username}`;
+            } else {
+                document.getElementById('userBadge').textContent = '👤 Authenticated User';
+            }
+        }
+        
+        // Logout function
+        function logout() {
+            // Clear cookies
+            document.cookie = 'auth=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+            document.cookie = 'sessionid=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+            document.cookie = 'username=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+            
+            // Redirect to login
+            window.location.href = '/login';
+        }
+        
+        // Initialize
+        updateUserInfo();
+        
+        // Auto-refresh user info every 30 seconds
+        setInterval(updateUserInfo, 30000);
+    </script>
 </body>
 </html>

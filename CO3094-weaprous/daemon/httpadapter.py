@@ -105,22 +105,30 @@ class HttpAdapter:
         try:
             # Handle the request
             msg = conn.recv(1024).decode()
-            print("[HttpAdapter] Received request from {}\n{}".format(addr, msg[:200]))
             
             # Parse request (extract method, path, headers, body, find hook)
             req.prepare(msg, routes)
             
-            # Check if request has a route handler
-            if req.hook:
-                print("[HttpAdapter] Found route handler for {} {}".format(req.method, req.path))
+            # Skip verbose logging for frequent polling requests
+            is_polling = req.path == "/channel/messages" and req.method == "POST"
+            
+            if not is_polling:
+                print("[HttpAdapter] Received request from {}\n{}".format(addr, msg[:200]))
+                # Check if request has a route handler
+                if req.hook:
+                    print("[HttpAdapter] Found route handler for {} {}".format(req.method, req.path))
+                else:
+                    print("[HttpAdapter] No route handler for {} {}".format(req.method, req.path))
             else:
-                print("[HttpAdapter] No route handler for {} {}".format(req.method, req.path))
+                # Just a brief log for polling
+                print("[HttpAdapter] Chat polling from {} - {} {}".format(addr, req.method, req.path))
             
             # Build response (call hook if exists, or serve file, or 404)
             response = resp.build_response(req)
             
             # Send response back to client
-            print("[HttpAdapter] Sending response to {}".format(addr))
+            if not is_polling:
+                print("[HttpAdapter] Sending response to {}".format(addr))
             conn.sendall(response)
         
         except Exception as e:
@@ -135,7 +143,9 @@ class HttpAdapter:
             # Close connection
             try:
                 conn.close()
-                print("[HttpAdapter] Connection closed: {}".format(addr))
+                # Only log connection close for non-polling requests
+                if not hasattr(req, 'path') or req.path != "/channel/messages":
+                    print("[HttpAdapter] Connection closed: {}".format(addr))
             except:
                 pass
 

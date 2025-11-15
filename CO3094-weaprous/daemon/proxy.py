@@ -62,27 +62,51 @@ def forward_request(host, port, request):
     """
 
     backend = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    backend.settimeout(10)  # 10 second timeout
 
     try:
+        print("[Proxy] Connecting to backend {}:{}".format(host, port))
         backend.connect((host, port))
+        print("[Proxy] Connected! Sending request to backend...")
         backend.sendall(request.encode())
+        
         response = b""
         while True:
             chunk = backend.recv(4096)
             if not chunk:
                 break
             response += chunk
+        
+        print("[Proxy] Received {} bytes from backend".format(len(response)))
         return response
-    except socket.error as e:
-      print("Socket error: {}".format(e))
-      return (
-            "HTTP/1.1 404 Not Found\r\n"
+        
+    except socket.timeout:
+        print("[Proxy] Timeout connecting to backend {}:{}".format(host, port))
+        return (
+            "HTTP/1.1 504 Gateway Timeout\r\n"
             "Content-Type: text/plain\r\n"
-            "Content-Length: 13\r\n"
+            "Content-Length: 19\r\n"
             "Connection: close\r\n"
             "\r\n"
-            "404 Not Found"
+            "504 Gateway Timeout"
         ).encode('utf-8')
+        
+    except socket.error as e:
+        print("[Proxy] Socket error connecting to {}:{} - {}".format(host, port, e))
+        return (
+            "HTTP/1.1 502 Bad Gateway\r\n"
+            "Content-Type: text/plain\r\n"
+            "Content-Length: 15\r\n"
+            "Connection: close\r\n"
+            "\r\n"
+            "502 Bad Gateway"
+        ).encode('utf-8')
+        
+    finally:
+        try:
+            backend.close()
+        except:
+            pass
 
 
 def resolve_routing_policy(hostname, routes):
@@ -176,6 +200,7 @@ def handle_client(ip, port, conn, addr, routes):
     """
     
     try:
+        # Receive and parse request
         request = conn.recv(1024).decode()
         
         if not request.strip():
@@ -183,7 +208,7 @@ def handle_client(ip, port, conn, addr, routes):
             conn.close()
             return
 
-        # Extract hostname
+        # Extract hostname from Host header
         hostname = None
         for line in request.splitlines():
             if line.lower().startswith('host:'):
@@ -196,19 +221,15 @@ def handle_client(ip, port, conn, addr, routes):
             
         print("[Proxy] {} at Host: {}".format(addr, hostname))
         
-    except Exception as e:
-        print("[Proxy] Error processing request from {}: {}".format(addr, e))
-        conn.close()
-        return
+        # Resolve the matching destination in routes and convert port to integer
+        resolved_host, resolved_port = resolve_routing_policy(hostname, routes)
+        try:
+            resolved_port = int(resolved_port)
+        except ValueError:
+            print("[Proxy] Not a valid port integer: {}".format(resolved_port))
+            resolved_port = 8000  # Default fallback port
 
-    # Resolve the matching destination in routes and need conver port
-    # to integer value
-    resolved_host, resolved_port = resolve_routing_policy(hostname, routes)
-    try:
-        resolved_port = int(resolved_port)
-    except ValueError:
-        print("Not a valid integer")
-
+        # Forward request to resolved backend
         if resolved_host:
             print("[Proxy] Host name {} is forwarded to {}:{}".format(hostname, resolved_host, resolved_port))
             response = forward_request(resolved_host, resolved_port, request)        
@@ -222,19 +243,18 @@ def handle_client(ip, port, conn, addr, routes):
                 "\r\n"
                 "404 Not Found"
             ).encode('utf-8')
-        # giải quyết việc client disconnect trước khi nhận response -> không crash proxy
+        
+        # Send response back to client (handle client disconnect gracefully)
         try:
             conn.sendall(response)
+            print("[Proxy] Response sent to {}".format(addr))
         except Exception as e:
             print("[Proxy] Error sending response to {}: {}".format(addr, e))
-        finally:
-            try:
-                conn.close()
-            except:
-                pass
-                
+        
     except Exception as e:
         print("[Proxy] Unexpected error handling client {}: {}".format(addr, e))
+    finally:
+        # Always close connection
         try:
             conn.close()
         except:

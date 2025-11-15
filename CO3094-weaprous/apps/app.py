@@ -35,6 +35,7 @@ Features:
 import json
 import argparse
 import datetime
+import urllib.parse
 from daemon.weaprous import WeApRous
 
 PORT = 8000  # Default port
@@ -74,10 +75,20 @@ def create_session(username):
     }
     return session_id
 
+@app.route('/login', methods=['GET'])
+def login_page(request=None, body=""):
+    """
+    Display login page (GET request)
+    """
+    print("[App] GET /login - serving login page")
+    # This will be handled by static file server to serve login.html
+    return None  # Let static file handler serve login.html
+
 @app.route('/', methods=['GET'])
 def index(request=None, body=""):
     """
     Task 1B: Cookie-based access control with session validation
+    Returns HTML pages instead of JSON responses
     """
     print("[App] GET / - checking authentication via cookie")
     
@@ -93,35 +104,33 @@ def index(request=None, body=""):
         if auth_cookie == 'true' and sessionid in SESSIONS:
             session_data = SESSIONS[sessionid]
             print(f"[App] Valid session found for user: {session_data['username']}")
+            print("[App] Serving index.html for authenticated user")
             
-            return (200, {
-                "page": "index",
-                "message": "Welcome to the RESTful TCP WebApp",
-                "status": "You are viewing the index page",
-                "authenticated": True,
-                "user": session_data['username']
-            })
+            # Return None to trigger static file serving of index.html
+            return None
+            
         elif auth_cookie == 'true':
             print(f"[App] Invalid sessionid: {sessionid}")
-            return (401, {
-                "status": "unauthorized",
-                "message": "Session invalid or expired",
-                "authenticated": False
-            })
+            print("[App] Serving unauthorized.html for invalid session")
+            
+            # Return None but modify request path to serve unauthorized.html
+            request.path = '/unauthorized.html'
+            return None
+            
         else:
             print(f"[App] Invalid auth cookie: {auth_cookie}")
-            return (401, {
-                "status": "unauthorized",
-                "message": "Invalid or missing auth cookie",
-                "authenticated": False
-            })
+            print("[App] Serving unauthorized.html for invalid auth")
+            
+            # Return None but modify request path to serve unauthorized.html
+            request.path = '/unauthorized.html'
+            return None
     else:
         print("[App] No auth cookie found")
-        return (401, {
-            "status": "unauthorized",
-            "message": "Auth cookie required. Please login first.",
-            "authenticated": False
-        })
+        print("[App] Serving unauthorized.html for missing auth")
+        
+        # Return None but modify request path to serve unauthorized.html
+        request.path = '/unauthorized.html'
+        return None
 
 
 @app.route('/login', methods=['POST'])
@@ -160,9 +169,38 @@ def login(request=None, body=""):
             print("[App] Login failed: Empty body")
             return (401, {"status": "unauthorized", "message": "Missing credentials"})
         
-        credentials = json.loads(actual_body)
-        username = credentials.get("username", "")
-        password = credentials.get("password", "")
+        # Determine content type and parse accordingly
+        content_type = ""
+        if request and hasattr(request, 'headers'):
+            content_type = request.headers.get('content-type', '').lower()
+        
+        username = ""
+        password = ""
+        
+        if 'application/json' in content_type:
+            # Handle JSON data (from API calls)
+            credentials = json.loads(actual_body)
+            username = credentials.get("username", "")
+            password = credentials.get("password", "")
+            print("[App] Parsing JSON credentials")
+        elif 'application/x-www-form-urlencoded' in content_type or '=' in actual_body:
+            # Handle form data (from HTML form)
+            print("[App] Parsing form-urlencoded credentials")
+            
+            # Parse form data: "username=admin&password=password"
+            parsed_data = urllib.parse.parse_qs(actual_body)
+            username = parsed_data.get('username', [''])[0]
+            password = parsed_data.get('password', [''])[0]
+        else:
+            # Try JSON as fallback
+            try:
+                credentials = json.loads(actual_body)
+                username = credentials.get("username", "")
+                password = credentials.get("password", "")
+                print("[App] Fallback: parsing as JSON")
+            except:
+                print("[App] Unable to parse credentials format")
+                return (401, {"status": "unauthorized", "message": "Invalid data format"})
         
         print(f"[App] Login attempt: username='{username}'")
         
