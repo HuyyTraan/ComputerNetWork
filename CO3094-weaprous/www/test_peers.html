@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Peers API</title>
+    <style>
+        body { font-family: Arial; padding: 20px; }
+        button { padding: 10px; margin: 5px; }
+        pre { background: #f0f0f0; padding: 10px; margin: 10px 0; }
+        .result { border: 1px solid #ccc; padding: 10px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>Test WeApRous Peers API</h1>
+    
+    <button onclick="testGetList()">Test /get-list</button>
+    <button onclick="testWithCurl()">Show curl command</button>
+    <button onclick="clearResults()">Clear Results</button>
+    
+    <div id="results"></div>
+
+    <script>
+        async function testGetList() {
+            const results = document.getElementById('results');
+            const timestamp = new Date().toLocaleTimeString();
+            
+            try {
+                console.log('Testing /get-list at', timestamp);
+                
+                const response = await fetch('/get-list', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                console.log('Response status:', response.status);
+                
+                const resultDiv = document.createElement('div');
+                resultDiv.className = 'result';
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('Response data:', data);
+                    
+                    resultDiv.innerHTML = 
+                        '<h3>✅ Success (' + timestamp + ')</h3>' +
+                        '<p><strong>Status:</strong> ' + response.status + ' ' + response.statusText + '</p>' +
+                        '<p><strong>Response:</strong></p>' +
+                        '<pre>' + JSON.stringify(data, null, 2) + '</pre>' +
+                        '<p><strong>P2P Peers:</strong> ' + (data.peers ? data.peers.filter(p => p.client_type === 'p2p').length : 0) + '</p>';
+                } else {
+                    const errorText = await response.text();
+                    console.error('Error response:', errorText);
+                    
+                    resultDiv.innerHTML = 
+                        '<h3>❌ Error (' + timestamp + ')</h3>' +
+                        '<p><strong>Status:</strong> ' + response.status + ' ' + response.statusText + '</p>' +
+                        '<p><strong>Response:</strong></p>' +
+                        '<pre>' + errorText + '</pre>';
+                }
+                
+                results.insertBefore(resultDiv, results.firstChild);
+                
+            } catch (error) {
+                console.error('Fetch error:', error);
+                
+                const resultDiv = document.createElement('div');
+                resultDiv.className = 'result';
+                resultDiv.innerHTML = 
+                    '<h3>🔥 Network Error (' + timestamp + ')</h3>' +
+                    '<p><strong>Error:</strong> ' + error.message + '</p>' +
+                    '<p>This usually means the server is not running or not accessible.</p>';
+                
+                results.insertBefore(resultDiv, results.firstChild);
+            }
+        }
+        
+        function testWithCurl() {
+            const results = document.getElementById('results');
+            const resultDiv = document.createElement('div');
+            resultDiv.className = 'result';
+            resultDiv.innerHTML = 
+                '<h3>🔧 Manual Test</h3>' +
+                '<p>Run this command in your terminal:</p>' +
+                '<pre>curl http://127.0.0.1:8000/get-list</pre>' +
+                '<p>Or in PowerShell:</p>' +
+                '<pre>Invoke-RestMethod -Uri "http://127.0.0.1:8000/get-list" -Method GET</pre>';
+            results.insertBefore(resultDiv, results.firstChild);
+        }
+        
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+        }
+        
+        // Auto-test on page load
+        window.onload = () => {
+            setTimeout(testGetList, 1000);
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,18 @@
+{
+  "name": "weaprous-p2p-chat",
+  "version": "1.0.0",
+  "description": "P2P Chat Client for WeApRous Framework",
+  "main": "p2p_client.js",
+  "scripts": {
+    "start": "node p2p_client.js",
+    "alice": "node p2p_client.js alice",
+    "bob": "node p2p_client.js bob",
+    "charlie": "node p2p_client.js charlie"
+  },
+  "dependencies": {
+    "ws": "^8.14.0"
+  },
+  "keywords": ["p2p", "chat", "tcp", "websocket"],
+  "author": "WeApRous Team",
+  "license": "MIT"
+}

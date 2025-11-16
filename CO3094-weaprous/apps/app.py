@@ -311,6 +311,7 @@ def chat_submit_info(request=None, body=""):
     try:
         data = _chat_read_json_body(request, body)
         username = data.get("username")
+        p2p_port = data.get("p2p_port")  # P2P client sẽ gửi port
 
         if not username:
             return (400, {
@@ -318,14 +319,22 @@ def chat_submit_info(request=None, body=""):
                 "message": "username is required"
             })
 
-        # Server tự động detect client IP và allocate port
+        # Server tự động detect client IP
         client_ip = "127.0.0.1"  # TODO: Thực tế sẽ lấy từ request.remote_addr
-        allocated_port = 9100 + len(CHAT_PEERS)  # Simple port allocation
+        
+        # Sử dụng P2P port nếu có, nếu không thì allocate
+        if p2p_port:
+            allocated_port = p2p_port
+            print(f"[Chat] P2P client {username} using port {p2p_port}")
+        else:
+            allocated_port = 9100 + len(CHAT_PEERS)  # Simple port allocation for browser clients
+            print(f"[Chat] Browser client {username} allocated port {allocated_port}")
 
         CHAT_PEERS[username] = {
             "ip": client_ip,
             "port": allocated_port,
             "last_seen": datetime.datetime.utcnow().isoformat() + "Z",
+            "client_type": "p2p" if p2p_port else "browser"
         }
 
         print(f"[Chat] Registered peer {username} @ {client_ip}:{allocated_port}")
@@ -405,6 +414,7 @@ def chat_get_list(request=None, body=""):
             "username": username,
             "ip": info.get("ip", "0.0.0.0"),
             "port": info.get("port", 0),
+            "client_type": info.get("client_type", "browser"),
             "channels": [
                 ch for ch, members in CHAT_CHANNEL_MEMBERS.items()
                 if username in members

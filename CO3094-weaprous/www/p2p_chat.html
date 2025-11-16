@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>WeApRous P2P Chat</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+        :root {
+            --bg: #0f172a;
+            --card: #020617;
+            --accent: #38bdf8;
+            --text: #e5e7eb;
+            --muted: #9ca3af;
+            --border: #1f2937;
+            --danger: #f97373;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background: var(--card);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+        .header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        .status {
+            font-size: 12px;
+            color: var(--muted);
+        }
+        .status.connected { color: var(--accent); }
+        .status.error { color: var(--danger); }
+        
+        .connect-section {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+        }
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--bg);
+            color: var(--text);
+            font-size: 14px;
+        }
+        input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        button {
+            padding: 8px 16px;
+            border: 1px solid var(--accent);
+            border-radius: 8px;
+            background: var(--accent);
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        button:hover {
+            opacity: 0.8;
+        }
+        button.secondary {
+            background: transparent;
+            color: var(--accent);
+        }
+        
+        .messages {
+            height: 300px;
+            overflow-y: auto;
+            padding: 10px 20px;
+            border-bottom: 1px solid var(--border);
+        }
+        .message {
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .message:last-child {
+            border-bottom: none;
+        }
+        .msg-header {
+            font-size: 12px;
+            color: var(--muted);
+            margin-bottom: 4px;
+        }
+        .msg-from {
+            color: var(--accent);
+            font-weight: 500;
+        }
+        .msg-p2p {
+            color: #10b981;
+        }
+        .msg-server {
+            color: #f59e0b;
+        }
+        
+        .input-section {
+            padding: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="title">WeApRous P2P Chat</div>
+            <div class="status" id="connection-status">Disconnected</div>
+        </div>
+        
+        <div class="connect-section">
+            <div class="input-group">
+                <input id="ws-port" placeholder="WebSocket Port (e.g., 9200)" value="9200" />
+                <button onclick="connectP2P()">Connect to P2P Client</button>
+            </div>
+            <div class="input-group">
+                <input id="peer-username" placeholder="Peer username to connect" />
+                <button class="secondary" onclick="connectPeer()">Connect Peer</button>
+            </div>
+        </div>
+        
+        <div class="messages" id="messages">
+            <div class="message">
+                <div class="msg-header">System</div>
+                <div>Enter WebSocket port of your P2P client and click Connect</div>
+            </div>
+        </div>
+        
+        <div class="input-section">
+            <input id="target-user" placeholder="Send to user..." />
+            <input id="message-input" placeholder="Type message..." />
+            <button onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+    <script>
+        let ws = null;
+        let connected = false;
+
+        function addMessage(from, to, message, source = 'unknown') {
+            const messagesEl = document.getElementById('messages');
+            const div = document.createElement('div');
+            div.className = 'message';
+            
+            const sourceClass = source.includes('p2p') ? 'msg-p2p' : 'msg-server';
+            const sourceText = source.includes('p2p') ? 'P2P' : 'Server';
+            const toText = to ? ` → ${to}` : '';
+            
+            div.innerHTML = `
+                <div class="msg-header">
+                    <span class="msg-from">${from}</span>${toText} • 
+                    <span class="${sourceClass}">${sourceText}</span> • 
+                    ${new Date().toLocaleTimeString()}
+                </div>
+                <div>${message}</div>
+            `;
+            
+            messagesEl.appendChild(div);
+            messagesEl.scrollTop = messagesEl.scrollHeight;
+        }
+
+        function updateStatus(text, className = '') {
+            const statusEl = document.getElementById('connection-status');
+            statusEl.textContent = text;
+            statusEl.className = 'status ' + className;
+        }
+
+        function connectP2P() {
+            const port = document.getElementById('ws-port').value;
+            if (!port) {
+                alert('Please enter WebSocket port');
+                return;
+            }
+
+            if (ws) {
+                ws.close();
+            }
+
+            updateStatus('Connecting...', '');
+            
+            ws = new WebSocket(`ws://localhost:${port}`);
+            
+            ws.onopen = () => {
+                connected = true;
+                updateStatus('Connected to P2P Client', 'connected');
+                addMessage('System', null, `Connected to P2P client on port ${port}`, 'system');
+                
+                // Request message history
+                ws.send(JSON.stringify({ type: 'get_message_history' }));
+            };
+            
+            ws.onmessage = (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    
+                    if (data.type === 'new_message') {
+                        const msg = data.message;
+                        addMessage(msg.from, msg.to, msg.message, 'p2p');
+                    } else if (data.type === 'message_history') {
+                        data.messages.forEach(msg => {
+                            addMessage(msg.from, msg.to, msg.message, msg.source);
+                        });
+                    }
+                } catch (error) {
+                    console.error('WebSocket message error:', error);
+                }
+            };
+            
+            ws.onclose = () => {
+                connected = false;
+                updateStatus('Disconnected', 'error');
+                addMessage('System', null, 'Disconnected from P2P client', 'system');
+            };
+            
+            ws.onerror = (error) => {
+                updateStatus('Connection Error', 'error');
+                addMessage('System', null, `Connection error: ${error}`, 'system');
+            };
+        }
+
+        function connectPeer() {
+            if (!connected) {
+                alert('Connect to P2P client first');
+                return;
+            }
+            
+            const username = document.getElementById('peer-username').value.trim();
+            if (!username) {
+                alert('Enter peer username');
+                return;
+            }
+            
+            ws.send(JSON.stringify({
+                type: 'connect_peer',
+                username: username
+            }));
+            
+            addMessage('System', null, `Connecting to peer: ${username}`, 'system');
+        }
+
+        function sendMessage() {
+            if (!connected) {
+                alert('Connect to P2P client first');
+                return;
+            }
+            
+            const targetUser = document.getElementById('target-user').value.trim();
+            const message = document.getElementById('message-input').value.trim();
+            
+            if (!targetUser || !message) {
+                alert('Enter target user and message');
+                return;
+            }
+            
+            ws.send(JSON.stringify({
+                type: 'send_direct_message',
+                to: targetUser,
+                message: message
+            }));
+            
+            // Clear input
+            document.getElementById('message-input').value = '';
+            
+            addMessage('You', targetUser, message, 'p2p_sent');
+        }
+
+        // Enter key handling
+        document.getElementById('message-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+        
+        document.getElementById('peer-username').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                connectPeer();
+            }
+        });
+        
+        document.getElementById('ws-port').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                connectP2P();
+            }
+        });
+    </script>
+</body>
+</html>

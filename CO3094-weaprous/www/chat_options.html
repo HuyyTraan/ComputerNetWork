@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>WeApRous Chat Options</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+        :root {
+            --bg: #0f172a;
+            --card: #020617;
+            --accent: #38bdf8;
+            --text: #e5e7eb;
+            --muted: #9ca3af;
+            --border: #1f2937;
+            --danger: #f97373;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+        .title {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .card {
+            background: var(--card);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            padding: 30px;
+            margin-bottom: 20px;
+        }
+        .option {
+            padding: 20px;
+            margin: 10px 0;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .option:hover {
+            border-color: var(--accent);
+            background: rgba(56, 189, 248, 0.1);
+        }
+        .option-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--accent);
+            margin-bottom: 8px;
+        }
+        .option-desc {
+            color: var(--muted);
+            font-size: 14px;
+        }
+        .pros-cons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .pro { color: #10b981; }
+        .con { color: #f87171; }
+        .command {
+            background: #1e293b;
+            padding: 10px;
+            border-radius: 8px;
+            font-family: monospace;
+            margin: 10px 0;
+        }
+        button {
+            padding: 12px 24px;
+            border: 1px solid var(--accent);
+            border-radius: 8px;
+            background: var(--accent);
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        button.secondary {
+            background: transparent;
+            color: var(--accent);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="title">WeApRous Chat Options</div>
+        
+        <div class="card">
+            <div class="option" onclick="goToServerChat()">
+                <div class="option-title">🌐 Server-Based Chat (Easy)</div>
+                <div class="option-desc">Traditional chat qua server - Click vào là dùng được ngay</div>
+                <div class="pros-cons">
+                    <div class="pro">✅ Không cần setup</div>
+                    <div class="con">❌ Không phải P2P thật</div>
+                </div>
+                <div class="pro">✅ Browser only</div>
+                <div class="con">❌ Server bottleneck</div>
+            </div>
+            
+            <div class="option" onclick="showP2PGuide()">
+                <div class="option-title">🔗 True P2P Chat (Advanced)</div>
+                <div class="option-desc">Direct peer-to-peer connection - Cần setup Node.js</div>
+                <div class="pros-cons">
+                    <div class="pro">✅ Thật sự P2P</div>
+                    <div class="con">❌ Cần terminal</div>
+                </div>
+                <div class="pro">✅ Faster, scalable</div>
+                <div class="con">❌ Phức tạp hơn</div>
+            </div>
+            
+            <div class="option" onclick="showWebRTCOption()">
+                <div class="option-title">🌟 WebRTC P2P (Future)</div>
+                <div class="option-desc">Browser-native P2P - Đang development</div>
+                <div class="pros-cons">
+                    <div class="pro">✅ Browser only</div>
+                    <div class="con">❌ Phức tạp implement</div>
+                </div>
+                <div class="pro">✅ True P2P</div>
+                <div class="con">❌ Cần signaling server</div>
+            </div>
+        </div>
+        
+        <div id="guide-section" style="display: none;">
+            <div class="card">
+                <h3>🚀 P2P Setup Guide</h3>
+                <p>Vì browser không thể tạo TCP server, bạn cần Node.js:</p>
+                
+                <div class="command">
+                    # Terminal 1: Start P2P Client<br>
+                    node p2p_client.js alice
+                </div>
+                
+                <div class="command">
+                    # Terminal 2: Start another P2P Client<br>
+                    node p2p_client.js bob
+                </div>
+                
+                <p>Sau đó mở P2P UI và kết nối với WebSocket port.</p>
+                
+                <button onclick="window.open('/p2p_chat.html', '_blank')">Open P2P UI</button>
+                <button class="secondary" onclick="copyCommands()">Copy Commands</button>
+            </div>
+        </div>
+        
+        <div id="webrtc-section" style="display: none;">
+            <div class="card">
+                <h3>🌟 WebRTC P2P</h3>
+                <p>WebRTC cho phép browser P2P trực tiếp, nhưng cần:</p>
+                
+                <ul style="text-align: left;">
+                    <li><strong>Signaling Server:</strong> Trao đổi connection info</li>
+                    <li><strong>STUN/TURN:</strong> NAT traversal</li>
+                    <li><strong>Complex Setup:</strong> ICE candidates, SDP offers</li>
+                </ul>
+                
+                <p>Có thể implement sau nếu bạn muốn browser-only P2P.</p>
+                
+                <button class="secondary" onclick="hideAllGuides()">Back to Options</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function goToServerChat() {
+            window.location.href = '/chat.html';
+        }
+        
+        function showP2PGuide() {
+            document.getElementById('guide-section').style.display = 'block';
+            document.getElementById('webrtc-section').style.display = 'none';
+        }
+        
+        function showWebRTCOption() {
+            document.getElementById('webrtc-section').style.display = 'block';
+            document.getElementById('guide-section').style.display = 'none';
+        }
+        
+        function hideAllGuides() {
+            document.getElementById('guide-section').style.display = 'none';
+            document.getElementById('webrtc-section').style.display = 'none';
+        }
+        
+        function copyCommands() {
+            const commands = `# Terminal 1: Start P2P Client
+node p2p_client.js alice
+
+# Terminal 2: Start another P2P Client  
+node p2p_client.js bob
+
+# Then open: http://localhost:8000/p2p_chat.html`;
+            
+            navigator.clipboard.writeText(commands).then(() => {
+                alert('Commands copied to clipboard!');
+            });
+        }
+    </script>
+</body>
+</html>
