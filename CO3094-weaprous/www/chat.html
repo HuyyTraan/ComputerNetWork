@@ -339,18 +339,12 @@
         </div>
 
         <div id="login-section" class="login-card">
-            <div class="section-title">Login & Peer Info</div>
+            <div class="section-title">Login & Join Chat</div>
             <label class="field-label">Username</label>
-            <input id="username-input" class="input" placeholder="vd: alice" />
-
-            <label class="field-label" style="margin-top:6px;">IP (demo)</label>
-            <input id="ip-input" class="input" value="127.0.0.1" />
-
-            <label class="field-label" style="margin-top:6px;">Port (demo)</label>
-            <input id="port-input" class="input" value="9100" />
+            <input id="username-input" class="input" placeholder="Enter your username" />
 
             <button class="btn" onclick="loginAndRegister()">
-                <span>Login & Register Peer</span>
+                <span>Join Chat</span>
             </button>
             <div class="field-label" id="login-status"></div>
         </div>
@@ -421,13 +415,9 @@
     // ======= LOGIN + REGISTER PEER =======
     async function loginAndRegister() {
         const usernameEl = document.getElementById("username-input");
-        const ipEl = document.getElementById("ip-input");
-        const portEl = document.getElementById("port-input");
         const statusEl = document.getElementById("login-status");
 
         const chatName = usernameEl.value.trim();
-        const ip = ipEl.value.trim();
-        const port = portEl.value.trim();
 
         if (!chatName) {
             statusEl.textContent = "Please enter username";
@@ -450,11 +440,9 @@
             return;
         }
 
-        // 2. Đăng ký peer với tên chatName
+        // 2. Đăng ký peer với tên chatName (server tự detect IP)
         const regRes = await api("/submit-info", "POST", {
-            username: chatName,
-            ip: ip || "127.0.0.1",
-            port: port || 9100
+            username: chatName
         });
 
         if (regRes.status !== 200) {

@@ -295,11 +295,15 @@ def _chat_read_json_body(request, body: str):
 def chat_submit_info(request=None, body=""):
     """
     Đăng ký peer với tracker.
+    Server tự động detect client IP và allocate port.
     Body JSON:
         {
-            "username": "alice",
-            "ip": "127.0.0.1",
-            "port": PORT + 1  # Dynamic port based on main app port
+            "username": "alice"
+        }
+    Response:
+        {
+            "status": "ok", 
+            "peer": {"ip": "127.0.0.1", "port": 9100, "last_seen": "..."}
         }
     """
     print("[Chat] /submit-info")
@@ -307,22 +311,24 @@ def chat_submit_info(request=None, body=""):
     try:
         data = _chat_read_json_body(request, body)
         username = data.get("username")
-        ip = data.get("ip")
-        port = data.get("port")
 
-        if not username or not ip or port is None:
+        if not username:
             return (400, {
                 "status": "bad_request",
-                "message": "username, ip, port are required"
+                "message": "username is required"
             })
 
+        # Server tự động detect client IP và allocate port
+        client_ip = "127.0.0.1"  # TODO: Thực tế sẽ lấy từ request.remote_addr
+        allocated_port = 9100 + len(CHAT_PEERS)  # Simple port allocation
+
         CHAT_PEERS[username] = {
-            "ip": ip,
-            "port": int(port),
+            "ip": client_ip,
+            "port": allocated_port,
             "last_seen": datetime.datetime.utcnow().isoformat() + "Z",
         }
 
-        print(f"[Chat] Registered peer {username} @ {ip}:{port}")
+        print(f"[Chat] Registered peer {username} @ {client_ip}:{allocated_port}")
         return (200, {
             "status": "ok",
             "peer": CHAT_PEERS[username]
