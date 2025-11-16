@@ -188,15 +188,16 @@
                 const result = await response.json();
                 
                 if (response.ok) {
-                    showSuccess('Login successful! Redirecting to chat...');
+                    showSuccess('Login successful! Redirecting to main page...');
                     
                     // Redirect to chat after short delay
-                    setTimeout(() => {
-                        window.location.href = '/chat.html';
-                    }, 1500);
+                    
                 } else {
-                    showError(result.message || 'Login failed');
+                    showError(result.message || 'Login failed! Redirecting to main page...');
                 }
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 1500);
             } catch (error) {
                 console.error('Login error:', error);
                 showError('Connection error. Please try again.');
