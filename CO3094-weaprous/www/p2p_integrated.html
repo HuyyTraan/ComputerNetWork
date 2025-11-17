@@ -1,0 +1,1035 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>WeApRous P2P Chat</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+        :root {
+            --bg: #0f172a;
+            --card: #020617;
+            --accent: #38bdf8;
+            --accent-soft: rgba(56, 189, 248, 0.15);
+            --text: #e5e7eb;
+            --muted: #9ca3af;
+            --border: #1f2937;
+            --danger: #f97373;
+            --success: #10b981;
+            --warning: #f59e0b;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: radial-gradient(circle at top, #1e293b 0, #020617 55%, #000 100%);
+            color: var(--text);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .app {
+            width: 100%;
+            max-width: 1200px;
+            height: 95vh;
+            background: linear-gradient(135deg, rgba(15,23,42,0.95), rgba(15,23,42,0.98));
+            border-radius: 24px;
+            border: 1px solid rgba(148,163,184,0.25);
+            box-shadow: 0 0 0 1px rgba(15,23,42,0.9), 0 18px 45px rgba(0,0,0,0.7);
+            display: flex;
+            overflow: hidden;
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            width: 300px;
+            border-right: 1px solid var(--border);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            background: radial-gradient(circle at top left, #1e293b 0, #020617 55%);
+            overflow-y: auto;
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 0, #38bdf8, #0ea5e9 40%, #0369a1 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: 700;
+            color: white;
+            box-shadow: 0 0 20px rgba(56,189,248,0.5);
+        }
+        .logo-text {
+            flex: 1;
+        }
+        .logo-title {
+            font-weight: 600;
+            font-size: 18px;
+        }
+        .logo-subtitle {
+            font-size: 11px;
+            text-transform: uppercase;
+            color: var(--muted);
+            letter-spacing: 0.1em;
+        }
+        
+        /* Status Badge */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border);
+        }
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        .status-connected .status-dot {
+            background: var(--success);
+            box-shadow: 0 0 10px var(--success);
+        }
+        .status-disconnected .status-dot {
+            background: var(--danger);
+            animation: none;
+        }
+        .status-connecting .status-dot {
+            background: var(--warning);
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        /* Setup Section */
+        .setup-section {
+            background: rgba(15,23,42,0.8);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .section-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--accent);
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+        .input-group {
+            margin-bottom: 12px;
+        }
+        .input-label {
+            font-size: 12px;
+            color: var(--muted);
+            margin-bottom: 6px;
+            display: block;
+        }
+        .input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: rgba(15,23,42,0.9);
+            color: var(--text);
+            font-size: 14px;
+        }
+        .input:focus {
+            border-color: var(--accent);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(56,189,248,0.1);
+        }
+        .btn {
+            width: 100%;
+            padding: 10px 16px;
+            border: 1px solid var(--accent);
+            border-radius: 10px;
+            background: var(--accent);
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .btn:hover:not(:disabled) {
+            background: #0ea5e9;
+            box-shadow: 0 0 20px rgba(56,189,248,0.3);
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .btn-outline {
+            background: transparent;
+            color: var(--accent);
+        }
+        .btn-outline:hover:not(:disabled) {
+            background: rgba(56,189,248,0.1);
+        }
+        .status-message {
+            font-size: 12px;
+            margin-top: 8px;
+            padding: 8px;
+            border-radius: 8px;
+        }
+        .status-message.success {
+            color: var(--success);
+            background: rgba(16,185,129,0.1);
+        }
+        .status-message.error {
+            color: var(--danger);
+            background: rgba(249,115,115,0.1);
+        }
+        
+        /* Peer List */
+        .peer-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+        .peer-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .peer-list {
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 8px;
+        }
+        .peer-list::-webkit-scrollbar {
+            width: 6px;
+        }
+        .peer-list::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 3px;
+        }
+        .peer-item {
+            background: rgba(15,23,42,0.6);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .peer-item:hover {
+            border-color: var(--accent);
+            background: rgba(56,189,248,0.05);
+        }
+        .peer-item.selected {
+            border-color: var(--accent);
+            background: rgba(56,189,248,0.15);
+        }
+        .peer-item.connected {
+            border-color: var(--success);
+        }
+        .peer-header-line {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+        .peer-name {
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .peer-status {
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 12px;
+            background: rgba(15,23,42,0.8);
+        }
+        .peer-status.connected {
+            color: var(--success);
+            background: rgba(16,185,129,0.2);
+        }
+        .peer-status.available {
+            color: var(--muted);
+        }
+        .peer-info {
+            font-size: 11px;
+            color: var(--muted);
+        }
+        .peer-actions {
+            display: flex;
+            gap: 6px;
+            margin-top: 8px;
+        }
+        .peer-btn {
+            flex: 1;
+            padding: 6px 10px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: transparent;
+            color: var(--text);
+            cursor: pointer;
+            font-size: 11px;
+            transition: all 0.2s;
+        }
+        .peer-btn:hover:not(:disabled) {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+        .peer-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .peer-btn.primary {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: white;
+        }
+        
+        /* Main Chat Area */
+        .main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .chat-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .chat-title-section {
+            flex: 1;
+        }
+        .chat-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        .chat-subtitle {
+            font-size: 13px;
+            color: var(--muted);
+        }
+        .chat-info {
+            text-align: right;
+        }
+        .user-tag {
+            font-size: 12px;
+            color: var(--muted);
+        }
+        .user-name {
+            color: var(--accent);
+            font-weight: 600;
+        }
+        
+        /* Messages */
+        .messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+        .messages::-webkit-scrollbar {
+            width: 8px;
+        }
+        .messages::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 4px;
+        }
+        .message {
+            margin-bottom: 16px;
+            animation: fadeIn 0.3s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .msg-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+            font-size: 12px;
+        }
+        .msg-user {
+            color: var(--accent);
+            font-weight: 600;
+        }
+        .msg-badge {
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 500;
+        }
+        .msg-badge.p2p {
+            background: rgba(16,185,129,0.2);
+            color: var(--success);
+        }
+        .msg-badge.broadcast {
+            background: rgba(245,158,11,0.2);
+            color: var(--warning);
+        }
+        .msg-badge.server {
+            background: rgba(245,158,11,0.2);
+            color: var(--warning);
+        }
+        .msg-badge.system {
+            background: rgba(148,163,184,0.2);
+            color: var(--muted);
+        }
+        .msg-time {
+            color: var(--muted);
+            font-size: 11px;
+            margin-left: auto;
+        }
+        .msg-body {
+            background: rgba(15,23,42,0.6);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 10px 14px;
+            font-size: 14px;
+            line-height: 1.5;
+            max-width: 70%;
+        }
+        .message.me .msg-body {
+            margin-left: auto;
+            background: rgba(56,189,248,0.1);
+            border-color: rgba(56,189,248,0.3);
+        }
+        
+        /* Composer */
+        .composer {
+            padding: 20px;
+            border-top: 1px solid var(--border);
+        }
+        .composer-input {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+        .composer textarea {
+            flex: 1;
+            resize: none;
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            background: rgba(15,23,42,0.9);
+            color: var(--text);
+            padding: 12px 16px;
+            font-size: 14px;
+            font-family: inherit;
+            max-height: 100px;
+        }
+        .composer textarea:focus {
+            border-color: var(--accent);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(56,189,248,0.1);
+        }
+        .composer-btn {
+            padding: 12px 24px;
+            border: 1px solid var(--accent);
+            border-radius: 14px;
+            background: var(--accent);
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+        .composer-btn:hover:not(:disabled) {
+            background: #0ea5e9;
+            box-shadow: 0 0 20px rgba(56,189,248,0.3);
+        }
+        .composer-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .composer-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            color: var(--muted);
+        }
+        .small-link {
+            color: var(--accent);
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .small-link:hover {
+            text-decoration: underline;
+        }
+        
+        /* Utility */
+        .hidden { display: none !important; }
+        .help-text {
+            font-size: 11px;
+            color: var(--muted);
+            margin-top: 8px;
+            line-height: 1.4;
+        }
+        .divider {
+            height: 1px;
+            background: var(--border);
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+<div class="app">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="logo">
+            <div class="logo-icon">P2P</div>
+            <div class="logo-text">
+                <div class="logo-title">WeApRous P2P</div>
+                <div class="logo-subtitle">True Peer-to-Peer Chat</div>
+            </div>
+        </div>
+
+        <div class="status-badge status-disconnected" id="status-badge">
+            <div class="status-dot"></div>
+            <span id="status-text">Disconnected</span>
+        </div>
+
+        <!-- Setup Section -->
+        <div id="setup-section" class="setup-section">
+            <div class="section-title">🚀 Setup Connection</div>
+            
+            <div class="input-group">
+                <label class="input-label">Your Username</label>
+                <input id="username-input" class="input" placeholder="Enter username" />
+            </div>
+            
+            <div class="input-group">
+                <label class="input-label">WebSocket Port</label>
+                <input id="ws-port-input" class="input" placeholder="Auto-detect or enter port" />
+                <div class="help-text">💡 Run: <code>node p2p_client.js &lt;username&gt;</code> first</div>
+            </div>
+            
+            <button class="btn" onclick="connectToP2P()">Connect to P2P Client</button>
+            <button class="btn btn-outline" onclick="autoDetectPort()" style="margin-top: 8px;">Auto-Detect Port</button>
+            
+            <div id="setup-status"></div>
+        </div>
+
+        <!-- Peer List Section -->
+        <div id="peer-section" class="peer-section hidden">
+            <div class="peer-header">
+                <div class="section-title">Available Peers</div>
+                <button class="btn btn-outline" style="width: auto; padding: 6px 12px; font-size: 11px;" onclick="refreshPeers()">
+                    🔄 Refresh
+                </button>
+            </div>
+            
+            <div class="peer-list" id="peer-list">
+                <div class="help-text">Loading peers...</div>
+            </div>
+            
+            <div class="divider"></div>
+            
+            <button class="btn btn-outline" onclick="autoConnectAll()">
+                🔗 Auto-Connect All Peers
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Chat Area -->
+    <main class="main">
+        <div class="chat-header">
+            <div class="chat-title-section">
+                <div class="chat-title" id="chat-title">Welcome to P2P Chat</div>
+                <div class="chat-subtitle" id="chat-subtitle">Connect to start chatting</div>
+            </div>
+            <div class="chat-info">
+                <div class="user-tag">You: <span class="user-name" id="current-user">Not connected</span></div>
+            </div>
+        </div>
+
+        <div class="messages" id="messages">
+            <div class="message">
+                <div class="msg-header">
+                    <span class="msg-user">System</span>
+                    <span class="msg-badge system">Welcome</span>
+                    <span class="msg-time">${new Date().toLocaleTimeString()}</span>
+                </div>
+                <div class="msg-body">
+                    👋 Welcome to WeApRous True P2P Chat!<br><br>
+                    <strong>Quick Start:</strong><br>
+                    1. Run P2P client: <code>node p2p_client.js &lt;username&gt;</code><br>
+                    2. Note the WebSocket port shown<br>
+                    3. Enter username and port, click Connect<br>
+                    4. Start chatting directly with peers!
+                </div>
+            </div>
+        </div>
+
+        <div class="composer">
+            <div class="composer-input">
+                <textarea id="message-input" rows="2" placeholder="Connect to P2P client first..." disabled></textarea>
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <button class="composer-btn" onclick="sendMessage()" id="send-btn" disabled>
+                        Send Direct
+                    </button>
+                    <button class="composer-btn" onclick="sendBroadcast()" id="broadcast-btn" disabled style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border-color: #f59e0b;">
+                        Broadcast All
+                    </button>
+                </div>
+            </div>
+            <div class="composer-footer">
+                <span id="composer-status">Not connected</span>
+                <a href="#" class="small-link" onclick="event.preventDefault(); clearMessages();">Clear messages</a>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+    // ==================== GLOBAL STATE ====================
+    let ws = null;
+    let connected = false;
+    let currentUser = null;
+    let selectedPeer = null;
+    let availablePeers = [];
+    let connectedPeers = new Set();
+    let pollTimer = null;
+
+    // ==================== CONNECTION MANAGEMENT ====================
+    async function autoDetectPort() {
+        const statusEl = document.getElementById('setup-status');
+        statusEl.innerHTML = '<div class="status-message">🔍 Scanning for P2P client...</div>';
+        
+        // Try common WebSocket ports
+        const portsToTry = [62420, 62421, 62422, 9200, 9201, 9202, 9300, 9301, 9302];
+        
+        for (const port of portsToTry) {
+            try {
+                const testWs = new WebSocket(`ws://localhost:${port}`);
+                
+                await new Promise((resolve, reject) => {
+                    const timeout = setTimeout(() => {
+                        testWs.close();
+                        reject();
+                    }, 500);
+                    
+                    testWs.onopen = () => {
+                        clearTimeout(timeout);
+                        testWs.close();
+                        resolve();
+                    };
+                    
+                    testWs.onerror = () => {
+                        clearTimeout(timeout);
+                        reject();
+                    };
+                });
+                
+                // Found it!
+                document.getElementById('ws-port-input').value = port;
+                statusEl.innerHTML = `<div class="status-message success">✅ Found P2P client on port ${port}</div>`;
+                return;
+                
+            } catch (e) {
+                // Port not available, continue
+            }
+        }
+        
+        statusEl.innerHTML = '<div class="status-message error">❌ No P2P client found. Please start one first.</div>';
+    }
+
+    async function connectToP2P() {
+        const username = document.getElementById('username-input').value.trim();
+        const port = document.getElementById('ws-port-input').value.trim();
+        const statusEl = document.getElementById('setup-status');
+        
+        if (!username) {
+            statusEl.innerHTML = '<div class="status-message error">❌ Please enter username</div>';
+            return;
+        }
+        
+        if (!port) {
+            statusEl.innerHTML = '<div class="status-message error">❌ Please enter WebSocket port or use Auto-Detect</div>';
+            return;
+        }
+        
+        statusEl.innerHTML = '<div class="status-message">🔗 Connecting to P2P client...</div>';
+        updateStatus('Connecting...', 'connecting');
+        
+        try {
+            if (ws) ws.close();
+            
+            ws = new WebSocket(`ws://localhost:${port}`);
+            
+            ws.onopen = () => {
+                connected = true;
+                currentUser = username;
+                
+                // Update UI
+                document.getElementById('current-user').textContent = username;
+                document.getElementById('chat-title').textContent = `P2P Chat - ${username}`;
+                document.getElementById('chat-subtitle').textContent = 'Select a peer to start chatting';
+                
+                // Hide setup, show peer list
+                document.getElementById('setup-section').classList.add('hidden');
+                document.getElementById('peer-section').classList.remove('hidden');
+                
+                // Update status
+                updateStatus('Connected', 'connected');
+                statusEl.innerHTML = '<div class="status-message success">✅ Connected to P2P client!</div>';
+                
+                // Enable composer
+                document.getElementById('message-input').disabled = false;
+                document.getElementById('message-input').placeholder = 'Type message... (select peer for direct, or broadcast to all)';
+                document.getElementById('send-btn').disabled = false;
+                document.getElementById('broadcast-btn').disabled = false;
+                document.getElementById('composer-status').textContent = 'Ready to chat (select peer or broadcast)';
+                
+                // Add system message
+                addSystemMessage(`Connected to P2P network as ${username}`);
+                
+                // Request message history
+                ws.send(JSON.stringify({ type: 'get_message_history' }));
+                
+                // Start polling for peers
+                startPeerPolling();
+            };
+            
+            ws.onmessage = (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    handleWebSocketMessage(data);
+                } catch (error) {
+                    console.error('WebSocket message error:', error);
+                }
+            };
+            
+            ws.onclose = () => {
+                connected = false;
+                updateStatus('Disconnected', 'disconnected');
+                addSystemMessage('Disconnected from P2P client');
+                stopPeerPolling();
+                
+                // Reset UI
+                document.getElementById('message-input').disabled = true;
+                document.getElementById('send-btn').disabled = true;
+                document.getElementById('broadcast-btn').disabled = true;
+                document.getElementById('composer-status').textContent = 'Disconnected';
+            };
+            
+            ws.onerror = (error) => {
+                statusEl.innerHTML = '<div class="status-message error">❌ Connection failed. Check port and P2P client.</div>';
+                updateStatus('Connection Error', 'disconnected');
+            };
+            
+        } catch (error) {
+            statusEl.innerHTML = `<div class="status-message error">❌ Error: ${error.message}</div>`;
+            updateStatus('Error', 'disconnected');
+        }
+    }
+
+    function handleWebSocketMessage(data) {
+        console.log('WebSocket message:', data);
+        
+        switch (data.type) {
+            case 'new_message':
+                const msg = data.message;
+                addMessage(msg.from, msg.to, msg.message, msg.source || 'p2p');
+                break;
+                
+            case 'message_history':
+                data.messages.forEach(msg => {
+                    addMessage(msg.from, msg.to, msg.message, msg.source);
+                });
+                break;
+                
+            case 'peer_connected':
+                connectedPeers.add(data.peer);
+                addSystemMessage(`🔗 Connected to peer: ${data.peer}`);
+                updatePeerList();
+                break;
+                
+            case 'peer_disconnected':
+                connectedPeers.delete(data.peer);
+                addSystemMessage(`🔌 Disconnected from peer: ${data.peer}`);
+                updatePeerList();
+                break;
+                
+            case 'peers':
+                availablePeers = data.peers || [];
+                if (data.connected) {
+                    connectedPeers = new Set(data.connected);
+                }
+                updatePeerList();
+                break;
+                
+            case 'broadcast_sent':
+                // Show broadcast confirmation with all recipient names
+                const recipients = data.peers.join(', ');
+                addSystemMessage(`✅ Broadcast sent to: ${recipients}`);
+                break;
+                
+            case 'error':
+                addSystemMessage(`❌ Error: ${data.message}`);
+                break;
+        }
+    }
+
+    // ==================== PEER MANAGEMENT ====================
+    async function refreshPeers() {
+        if (!connected || !ws) return;
+        
+        // Request peers from P2P client
+        ws.send(JSON.stringify({ type: 'get_peers' }));
+    }
+
+    function updatePeerList() {
+        const peerListEl = document.getElementById('peer-list');
+        
+        if (availablePeers.length === 0) {
+            peerListEl.innerHTML = '<div class="help-text">No P2P peers available.<br>Start another P2P client to see them here.</div>';
+            return;
+        }
+        
+        peerListEl.innerHTML = '';
+        
+        availablePeers.forEach(peer => {
+            const isConnected = connectedPeers.has(peer.username);
+            const isSelected = selectedPeer === peer.username;
+            
+            const div = document.createElement('div');
+            div.className = `peer-item ${isSelected ? 'selected' : ''} ${isConnected ? 'connected' : ''}`;
+            
+            div.innerHTML = `
+                <div class="peer-header-line">
+                    <span class="peer-name">${peer.username}</span>
+                    <span class="peer-status ${isConnected ? 'connected' : 'available'}">
+                        ${isConnected ? '🟢 Connected' : '⚪ Available'}
+                    </span>
+                </div>
+                <div class="peer-info">${peer.ip}:${peer.port}</div>
+                <div class="peer-actions">
+                    <button class="peer-btn ${isConnected ? '' : 'primary'}" onclick="connectToPeer('${peer.username}')" ${isConnected ? 'disabled' : ''}>
+                        ${isConnected ? '✓ Connected' : '🔗 Connect'}
+                    </button>
+                    <button class="peer-btn" onclick="selectPeer('${peer.username}')">
+                        💬 Chat
+                    </button>
+                </div>
+            `;
+            
+            peerListEl.appendChild(div);
+        });
+    }
+
+    function connectToPeer(peerUsername) {
+        if (!connected || !ws) return;
+        
+        ws.send(JSON.stringify({
+            type: 'connect_peer',
+            username: peerUsername
+        }));
+        
+        addSystemMessage(`Connecting to ${peerUsername}...`);
+    }
+
+    function selectPeer(peerUsername) {
+        selectedPeer = peerUsername;
+        
+        document.getElementById('chat-title').textContent = `Chat with ${peerUsername}`;
+        document.getElementById('chat-subtitle').textContent = `Direct P2P connection • ${connectedPeers.has(peerUsername) ? 'Connected' : 'Not connected'}`;
+        document.getElementById('composer-status').textContent = `Direct to ${peerUsername} (or use Broadcast All)`;
+        
+        updatePeerList();
+        document.getElementById('message-input').focus();
+    }
+
+    async function autoConnectAll() {
+        if (!connected || !ws) return;
+        
+        ws.send(JSON.stringify({ type: 'auto_connect_peers' }));
+        addSystemMessage('Auto-connecting to all available peers...');
+    }
+
+    function startPeerPolling() {
+        refreshPeers();
+        if (pollTimer) clearInterval(pollTimer);
+        pollTimer = setInterval(refreshPeers, 5000);
+    }
+
+    function stopPeerPolling() {
+        if (pollTimer) {
+            clearInterval(pollTimer);
+            pollTimer = null;
+        }
+    }
+
+    // ==================== MESSAGING ====================
+    function sendMessage() {
+        if (!connected) {
+            alert('Connect to P2P client first');
+            return;
+        }
+        
+        if (!selectedPeer) {
+            alert('Select a peer for direct message, or use "Broadcast All" button');
+            return;
+        }
+        
+        const input = document.getElementById('message-input');
+        const message = input.value.trim();
+        
+        if (!message) return;
+        
+        // Send via WebSocket to P2P client
+        ws.send(JSON.stringify({
+            type: 'send_direct_message',
+            to: selectedPeer,
+            message: message
+        }));
+        
+        // Clear input
+        input.value = '';
+        input.focus();
+    }
+
+    function sendBroadcast() {
+        if (!connected) {
+            alert('Connect to P2P client first');
+            return;
+        }
+        
+        const input = document.getElementById('message-input');
+        const message = input.value.trim();
+        
+        if (!message) return;
+        
+        // Get all connected peers
+        const numConnected = connectedPeers.size;
+        
+        if (numConnected === 0) {
+            alert('No peers connected! Connect to peers first using "Connect" buttons.');
+            return;
+        }
+        
+        if (!confirm(`Broadcast to ${numConnected} connected peer${numConnected > 1 ? 's' : ''}?`)) {
+            return;
+        }
+        
+        // Send broadcast command via WebSocket to P2P client
+        ws.send(JSON.stringify({
+            type: 'broadcast_message',
+            message: message
+        }));
+        
+        // Add to local UI as broadcast message
+        addSystemMessage(`📢 Broadcasting to ${numConnected} peer${numConnected > 1 ? 's' : ''}: "${message}"`);
+        
+        // Clear input
+        input.value = '';
+        input.focus();
+    }
+
+    function addMessage(from, to, message, source = 'unknown') {
+        const messagesEl = document.getElementById('messages');
+        const div = document.createElement('div');
+        
+        const isMe = from === currentUser;
+        div.className = `message ${isMe ? 'me' : ''}`;
+        
+        let badgeClass = 'system';
+        let badgeText = 'System';
+        
+        if (source.includes('p2p')) {
+            badgeClass = 'p2p';
+            badgeText = '🔗 P2P';
+        } else if (source === 'server') {
+            badgeClass = 'server';
+            badgeText = '🌐 Server';
+        }
+        
+        const toText = to && to !== currentUser ? ` → ${to}` : '';
+        const time = new Date().toLocaleTimeString();
+        
+        div.innerHTML = `
+            <div class="msg-header">
+                <span class="msg-user">${from}${toText}</span>
+                <span class="msg-badge ${badgeClass}">${badgeText}</span>
+                <span class="msg-time">${time}</span>
+            </div>
+            <div class="msg-body">${escapeHtml(message)}</div>
+        `;
+        
+        messagesEl.appendChild(div);
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+
+    function addSystemMessage(message) {
+        addMessage('System', null, message, 'system');
+    }
+
+    function clearMessages() {
+        document.getElementById('messages').innerHTML = '';
+        addSystemMessage('Chat cleared');
+    }
+
+    // ==================== UI UTILITIES ====================
+    function updateStatus(text, status) {
+        const badge = document.getElementById('status-badge');
+        const statusText = document.getElementById('status-text');
+        
+        badge.className = `status-badge status-${status}`;
+        statusText.textContent = text;
+    }
+
+    function escapeHtml(str) {
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    }
+
+    // ==================== EVENT LISTENERS ====================
+    document.getElementById('message-input').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+        }
+    });
+
+    document.getElementById('username-input').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            document.getElementById('ws-port-input').focus();
+        }
+    });
+
+    document.getElementById('ws-port-input').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            connectToP2P();
+        }
+    });
+
+    // ==================== INITIALIZATION ====================
+    window.addEventListener('load', () => {
+        console.log('P2P Chat UI loaded');
+        
+        // Try auto-detect on load
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('auto')) {
+            setTimeout(autoDetectPort, 500);
+        }
+    });
+</script>
+</body>
+</html>

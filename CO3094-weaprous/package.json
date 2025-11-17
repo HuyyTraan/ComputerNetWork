@@ -7,7 +7,9 @@
     "start": "node p2p_client.js",
     "alice": "node p2p_client.js alice",
     "bob": "node p2p_client.js bob",
-    "charlie": "node p2p_client.js charlie"
+    "charlie": "node p2p_client.js charlie",
+    "test": "echo Run: start_p2p_test.bat",
+    "ui": "echo Run: start_p2p_ui.bat"
   },
   "dependencies": {
     "ws": "^8.14.0"

@@ -55,11 +55,18 @@ class P2PClient {
             // 4. Setup CLI
             this.setupCLI();
             
+            console.log(`\n${'='.repeat(60)}`);
             console.log(`✅ P2P Client ready!`);
-            console.log(`   User: ${this.username}`);
-            console.log(`   P2P Server: ${this.p2pPort}`);
-            console.log(`   WebSocket: ws://localhost:${this.wsPort}`);
-            console.log(`   Type 'help' for commands`);
+            console.log(`${'='.repeat(60)}`);
+            console.log(`   👤 User: ${this.username}`);
+            console.log(`   🔗 P2P Server: localhost:${this.p2pPort}`);
+            console.log(`   🌐 WebSocket: ws://localhost:${this.wsPort}`);
+            console.log(`${'='.repeat(60)}`);
+            console.log(`\n📱 To connect browser UI:`);
+            console.log(`   1. Open: http://127.0.0.1:8000/p2p_integrated.html`);
+            console.log(`   2. Enter username: ${this.username}`);
+            console.log(`   3. Enter WebSocket port: ${this.wsPort}`);
+            console.log(`\n💬 CLI Commands: Type 'help' for available commands\n`);
             
         } catch (error) {
             console.error('❌ Failed to start P2P client:', error);
@@ -120,30 +127,33 @@ class P2PClient {
                         status: 'connected'
                     }) + '\n');
                     
+                    // Notify browser if connected
+                    if (this.browserClient) {
+                        this.browserClient.send(JSON.stringify({
+                            type: 'peer_connected',
+                            peer: peerUsername
+                        }));
+                    }
+                    
                 } else if (message.type === 'direct_message') {
                     console.log(`💬 Direct message from ${message.from}: ${message.message}`);
                     
                     // Store message
-                    this.messageHistory.push({
+                    const msgData = {
                         type: 'direct',
                         from: message.from,
                         to: this.username,
                         message: message.message,
-                        timestamp: new Date().toISOString(),
+                        timestamp: message.timestamp || new Date().toISOString(),
                         source: 'p2p'
-                    });
+                    };
+                    this.messageHistory.push(msgData);
                     
                     // Forward to browser if connected
                     if (this.browserClient) {
                         this.browserClient.send(JSON.stringify({
-                            type: 'message',
-                            message: {
-                                type: 'direct',
-                                from: message.from,
-                                to: this.username,
-                                message: message.message,
-                                timestamp: new Date().toISOString()
-                            }
+                            type: 'new_message',
+                            message: msgData
                         }));
                     }
                 }
@@ -260,8 +270,34 @@ class P2PClient {
                         const message = JSON.parse(msgStr);
                         if (message.type === 'handshake_response') {
                             console.log(`🤝 Handshake confirmed with ${peerUsername}`);
+                            
+                            // Notify browser
+                            if (this.browserClient) {
+                                this.browserClient.send(JSON.stringify({
+                                    type: 'peer_connected',
+                                    peer: peerUsername
+                                }));
+                            }
                         } else if (message.type === 'direct_message') {
                             console.log(`💬 Direct message from ${message.from}: ${message.message}`);
+                            
+                            // Store and forward to browser
+                            const msgData = {
+                                type: 'direct',
+                                from: message.from,
+                                to: this.username,
+                                message: message.message,
+                                timestamp: message.timestamp || new Date().toISOString(),
+                                source: 'p2p'
+                            };
+                            this.messageHistory.push(msgData);
+                            
+                            if (this.browserClient) {
+                                this.browserClient.send(JSON.stringify({
+                                    type: 'new_message',
+                                    message: msgData
+                                }));
+                            }
                         }
                     } catch (error) {
                         console.error('Error parsing peer response:', error);
@@ -441,8 +477,61 @@ class P2PClient {
     async handleBrowserCommand(command) {
         switch (command.type) {
             case 'send_message':
-                await this.sendDirectMessage(command.to, command.message);
+            case 'send_direct_message':
+                // Handle both old and new command types
+                const targetUser = command.to || command.username;
+                const message = command.message;
+                if (targetUser && message) {
+                    await this.sendDirectMessage(targetUser, message);
+                    
+                    // Notify browser of successful send
+                    if (this.browserClient) {
+                        this.browserClient.send(JSON.stringify({
+                            type: 'new_message',
+                            message: {
+                                from: this.username,
+                                to: targetUser,
+                                message: message,
+                                timestamp: new Date().toISOString(),
+                                source: 'p2p_sent'
+                            }
+                        }));
+                    }
+                }
                 break;
+                
+            case 'broadcast_message':
+                // Broadcast to all connected peers
+                const broadcastMsg = command.message;
+                const connectedPeers = Array.from(this.peerConnections.keys());
+                
+                if (connectedPeers.length === 0) {
+                    console.log(`⚠️ No connected peers to broadcast to`);
+                    if (this.browserClient) {
+                        this.browserClient.send(JSON.stringify({
+                            type: 'error',
+                            message: 'No connected peers to broadcast to'
+                        }));
+                    }
+                    break;
+                }
+                
+                for (const peerUsername of connectedPeers) {
+                    await this.sendDirectMessage(peerUsername, broadcastMsg);
+                }
+                
+                console.log(`📢 Broadcast message to ${connectedPeers.length} peers: "${broadcastMsg}"`);
+                
+                // Notify browser of broadcast sent
+                if (this.browserClient) {
+                    this.browserClient.send(JSON.stringify({
+                        type: 'broadcast_sent',
+                        peers: connectedPeers,
+                        message: broadcastMsg
+                    }));
+                }
+                break;
+                
             case 'connect_peer':
                 try {
                     await this.connectToPeer(command.username);
@@ -455,8 +544,15 @@ class P2PClient {
                     }
                 } catch (error) {
                     console.error(`Failed to connect to ${command.username}:`, error);
+                    if (this.browserClient) {
+                        this.browserClient.send(JSON.stringify({
+                            type: 'error',
+                            message: `Failed to connect to ${command.username}`
+                        }));
+                    }
                 }
                 break;
+                
             case 'get_message_history':
                 if (this.browserClient) {
                     this.browserClient.send(JSON.stringify({
@@ -465,18 +561,57 @@ class P2PClient {
                     }));
                 }
                 break;
+                
             case 'get_peers':
                 try {
                     const peers = await this.getAllPeers();
-                    const p2pPeers = peers.filter(p => p.client_type === 'p2p');
+                    // Filter to show only P2P peers, excluding self
+                    const p2pPeers = peers.filter(p => 
+                        p.client_type === 'p2p' && p.username !== this.username
+                    );
+                    
                     if (this.browserClient) {
                         this.browserClient.send(JSON.stringify({
                             type: 'peers',
-                            peers: p2pPeers
+                            peers: p2pPeers,
+                            connected: Array.from(this.peerConnections.keys())
                         }));
                     }
                 } catch (error) {
                     console.error('Failed to get peer list:', error);
+                }
+                break;
+                
+            case 'auto_connect_peers':
+                // Auto-connect to all available P2P peers
+                try {
+                    const peers = await this.getAllPeers();
+                    const p2pPeers = peers.filter(p => 
+                        p.client_type === 'p2p' && 
+                        p.username !== this.username &&
+                        !this.peerConnections.has(p.username)
+                    );
+                    
+                    console.log(`🔗 Auto-connecting to ${p2pPeers.length} peers...`);
+                    
+                    for (const peer of p2pPeers) {
+                        try {
+                            await this.connectToPeer(peer.username);
+                        } catch (error) {
+                            console.error(`Failed to connect to ${peer.username}:`, error);
+                        }
+                    }
+                    
+                    // Send updated peer list
+                    if (this.browserClient) {
+                        this.browserClient.send(JSON.stringify({
+                            type: 'peers',
+                            peers: p2pPeers,
+                            connected: Array.from(this.peerConnections.keys())
+                        }));
+                    }
+                } catch (error) {
+                    console.error('Failed to auto-connect peers:', error);
                 }
                 break;
         }
@@ -501,6 +636,7 @@ class P2PClient {
                     console.log('  peers - Show currently connected peers');
                     console.log('  connect <username> - Connect to peer');
                     console.log('  send <username> <message> - Send direct message');
+                    console.log('  broadcast <message> - Broadcast message to all connected peers');
                     console.log('  info - Show client information');
                     console.log('  history - Show message history');
                     console.log('  quit - Exit');
@@ -517,6 +653,26 @@ class P2PClient {
                         const username = args[0];
                         const message = args.slice(1).join(' ');
                         await this.sendDirectMessage(username, message);
+                    }
+                    break;
+                    
+                case 'broadcast':
+                    if (args.length >= 1) {
+                        const message = args.join(' ');
+                        const connectedPeers = Array.from(this.peerConnections.keys());
+                        
+                        if (connectedPeers.length === 0) {
+                            console.log('❌ No connected peers to broadcast to');
+                            break;
+                        }
+                        
+                        for (const peerUsername of connectedPeers) {
+                            await this.sendDirectMessage(peerUsername, message);
+                        }
+                        
+                        console.log(`📢 Broadcast message to ${connectedPeers.length} peers: "${message}"`);
+                    } else {
+                        console.log('Usage: broadcast <message>');
                     }
                     break;
                     
